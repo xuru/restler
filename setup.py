@@ -2,7 +2,7 @@ import os
 from setuptools import setup
 
 setup(
-    name = "restler",
+    name = "restler-serialization",
     version = "0.1",
     author = "Curtis Thompson",
     author_email = "curtis.thompson@gmail.com",
