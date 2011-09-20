@@ -20,3 +20,5 @@ htmlcov/*
 .idea/*
 docs/static/_build/*
 build/*
+*.egg-info
+dist/*
