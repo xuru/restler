@@ -20,6 +20,9 @@ package and run::
 
 (Running ``setup.py`` requires setuptools.)
 
+For use on Google App Engine, you will need to install the code in the
+``restler`` directory somewhere in your path.
+
 Running Tests
 -------------
 
