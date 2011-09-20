@@ -16,7 +16,7 @@ Installation
 Install Restler from PyPi using easy_install or pip; or download the
 package and run::
 
-  ``python setup.py install``
+  python setup.py install
 
 (Running ``setup.py`` requires setuptools.)
 
@@ -25,7 +25,7 @@ Running Tests
 
 To run restler's tests::
 
-  ``./run_tests.py``
+  ./run_tests.py
 
 Running tests requires unittest2 and the Google App Engine SDK.
   
