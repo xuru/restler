@@ -19,3 +19,4 @@ _generated_media/*
 htmlcov/*
 .idea/*
 docs/static/_build/*
+build/*
