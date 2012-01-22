@@ -29,20 +29,21 @@ DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S"
 
 DEFAULT_STYLE = {
-    'xml' : {
+    'xml': {
         "root": lambda thing: ET.Element("result"),
         "model": lambda el, thing: ET.SubElement(el, thing.kind().lower()),
-        "list": lambda el, thing: None, # top level element for a list
-        "list_item": lambda el, thing: ET.SubElement(el, "item"), # An item in a list
-        "dict": lambda el, thing: None, # top level element for a dict
-        "dict_item": lambda el, thing: ET.SubElement(el, thing[0]), # thing is tuple(key, value)
+        "list": lambda el, thing: None,  # top level element for a list
+        "list_item": lambda el, thing: ET.SubElement(el, "item"),  # An item in a list
+        "dict": lambda el, thing: None,  # top level element for a dict
+        "dict_item": lambda el, thing: ET.SubElement(el, thing[0]),  # thing is tuple(key, value)
         "null": lambda el, thing: el.set("null", "true"),
     },
-    'json' : {
-        "flatten" : True,
-        "indent" : None,
+    'json': {
+        "flatten": True,
+        "indent": None,
     }
-} 
+}
+
 
 class SkipField(object):
     """ An empty class to dynamically exclude fields on serialization """
@@ -50,21 +51,24 @@ class SkipField(object):
 
 SKIP = SkipField()
 
+
 def json_response(response, model_or_query, strategy=None, status_code=200, context={}):
     """ Render json to a webapp response """
-    json = to_json(model_or_query, strategy, context=context)
+    serialized = to_json(model_or_query, strategy, context=context)
     response.set_status(status_code)
     response.headers['Content-Type'] = "application/json"
-    response.out.write(json)
-    return json
-                                
+    response.out.write(serialized)
+    return serialized
+
+
 def xml_response(response, model_or_query, strategy=None, status_code=200, context={}):
     """ Render xml to a webapp response """
     xml = to_xml(model_or_query, strategy, context=context)
     response.set_status(status_code)
     response.headers['Content-Type'] = "application/xml"
     response.out.write(xml)
-                                
+
+
 class SerializationStrategy(object):
     """ A container for multiple mappings (shouldn't be used directly)"""
     def __init__(self, mappings={}, style=None):
@@ -114,6 +118,7 @@ class SerializationStrategy(object):
     def __repr__(self):
         return pprint.pformat(self.mappings)
 
+
 class ModelStrategy(object):
     """ Defines how to serialize an AppEngine model i.e. which fields to include,
         exclude or map to a callable.
@@ -127,7 +132,7 @@ class ModelStrategy(object):
         :param include_all_fields: (False) Creates a strategy with all properties of the Model to be serialized.
         :param output_name: (None) [None|string|callable] The key or tag that surrounds the serialized properties for a Model.
             The default value is the lowercase classname of the Model.
-            None flattens the result structure. 
+            None flattens the result structure.
                 with name:  [{'my_class':{'prop1':'value1'}}, ...]
                 without name:  [{'prop1':'value1'}, ...]
         """
@@ -176,7 +181,7 @@ class ModelStrategy(object):
                         model_strategy.fields.append(name)
                         names[name] = name
                     else:
-                        raise ValueError("Cannot add field.  '%s' is not a valid field for model '%s'" % (name, self.model ))
+                        raise ValueError("Cannot add field.  '%s' is not a valid field for model '%s'" % (name, self.model))
                 else:
                     raise ValueError("Cannot add field.  '%s' already exists" % (name, ))
         else:
@@ -194,9 +199,9 @@ class ModelStrategy(object):
                 if isinstance(field, tuple):
                     field, _ = field
                 if field in names:
-                    if callable(names[field]): # Derived property
+                    if callable(names[field]):  # Derived property
                         m.fields.remove((field, names[field]))
-                    else: # simple field
+                    else:  # simple field
                         m.fields.remove(names[field])
                 else:
                     raise ValueError("'%s' cannot be removed. It is not in the current fields list (%s)" % (field, self.fields))
@@ -204,7 +209,7 @@ class ModelStrategy(object):
             raise ValueError("Fields must be a tuple or list.")
         return m
 
-    def to_dict(self): 
+    def to_dict(self):
         if self.name is not None:
             return {self.model: {self.name: self.fields}}
         return {self.model: self.fields}
@@ -270,6 +275,7 @@ class ModelStrategy(object):
     def __repr__(self):
         return pprint.pformat(self.to_dict())
 
+
 def encoder_builder(type_, strategy=None, style=None, context={}):
     def default_impl(obj):
         # Load objects from the datastore (could be done in parallel)
@@ -298,8 +304,8 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
         if isinstance(obj, users.User):
             return obj.user_id() or obj.email()
         if isinstance(obj, blobstore.BlobInfo):
-            return str(obj.key()) # TODO is this correct?
-        ret = {} # What we're most likely going to return (populated, of course)
+            return str(obj.key())  # TODO is this correct?
+        ret = {}  # What we're most likely going to return (populated, of course)
         if isinstance(obj, (db.Model, models.TransientModel)):
             model = {}
             kind = obj.kind().lower()
@@ -331,25 +337,25 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
             for field_name in fields:
                 # Check to see if this remaps a field to a callable or a different field
                 if isinstance(field_name, tuple):
-                    field_name, target = field_name # Only one key/value
+                    field_name, target = field_name  # Only one key/value
 
-                if callable(target): # Defer to the callable
+                if callable(target):  # Defer to the callable
                     # if the function has exactly two arguments, assume we should include the context param
                     if hasattr(target, "func_code") and target.func_code.co_argcount == 2:
                         model[field_name] = target(obj, context)
-                    else: # No context passed
+                    else:  # No context passed
                         model[field_name] = target(obj)
                     # if we get back an instance of SKIP, don't include this field in the output
                     if isinstance(model[field_name], SkipField):
                         del model[field_name]
                 else:
-                    if target: # Remapped name
+                    if target:  # Remapped name
                         if hasattr(obj, target):
                             model[field_name] = getattr(obj, target)
                         else:
                             raise ValueError("'%s' was not found " % target)
-                    else: # Common case (just the field)
-                        model[field_name] = getattr(obj, field_name) 
+                    else:  # Common case (just the field)
+                        model[field_name] = getattr(obj, field_name)
         return ret
     if type_ == "json":
         class AEEncoder(json.JSONEncoder):
@@ -397,10 +403,10 @@ def _encode_xml(thing, node, strategy, style, context):
         if el is None: el = node
         for key, value in thing.items():
             if not isinstance(key, basestring):
-                raise ValueError("key is not a valid string") # TODO better error message needed
+                raise ValueError("key is not a valid string")  # TODO better error message needed
             e = ET.SubElement(el, key)
             if value is None:
-                xml_style["null"](e, None) 
+                xml_style["null"](e, None)
             elif not isinstance(value, simple_types):
                 if isinstance(value, collection_types):
                     _encode_xml(value, e, strategy, style, context)
@@ -408,7 +414,7 @@ def _encode_xml(thing, node, strategy, style, context):
                     _encode_xml(encoder(value), e, strategy, style, context)
             else:
                 e.text = unicode(value)
-        return 
+        return
     elif isinstance(thing, list):
         # Allow overriding default
         el = xml_style["list"](node, thing)
@@ -427,12 +433,12 @@ def _encode_xml(thing, node, strategy, style, context):
             else:
                 i.text = unicode(value)
             if value is None:
-                xml_style["null"](i, None) 
+                xml_style["null"](i, None)
         return
     elif isinstance(thing, simple_types):
         node.text = unicode(thing)
     elif thing is None:
-        xml_style["null"](node, None) 
+        xml_style["null"](node, None)
     else:
         _encode_xml(encoder(thing), node, strategy, style, context)
     return
@@ -459,5 +465,3 @@ def to_xml(thing, strategy=None, context={}):
     root = style["xml"]["root"](thing)
     _encode_xml(thing, root, mappings, style, context)
     return ET.tostring(root)
-
-
