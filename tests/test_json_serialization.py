@@ -6,11 +6,21 @@ from google.appengine.api import users
 from restler.serializers import ModelStrategy, SerializationStrategy, to_json, SKIP
 from tests.models import Model1, Model2
 from pprint import pformat
-from django.utils import simplejson
 from datetime import datetime
 
+try:
+    import json
+except ImportError:
+    try:
+        import simplejson as json
+    except ImportError:
+        raise RuntimeError(
+            'A JSON parser is required, e.g., simplejson at '
+            'http://pypi.python.org/pypi/simplejson/')
+
+
 def flip(*args, **kwargs):
-    return simplejson.loads(to_json(*args, **kwargs))
+    return json.loads(to_json(*args, **kwargs))
 
 class TestJsonSerialization(unittest2.TestCase):
 
@@ -61,17 +71,17 @@ class TestJsonSerialization(unittest2.TestCase):
 
     def test_simple(self):
         ss = ModelStrategy(Model1) + [{"the_text": "text"}]
-        sj = simplejson.loads(to_json(Model1.all(), ss))
+        sj = json.loads(to_json(Model1.all(), ss))
         self.assertEqual(sj[1], {u'the_text': u'text'})
 
     def test_simple_property(self):
         ss = ModelStrategy(Model1) + [{"the_text": lambda o: o.text}]
-        sj = simplejson.loads(to_json(Model1.all(), ss))
+        sj = json.loads(to_json(Model1.all(), ss))
         self.assertEqual(sj[1], {u'the_text': u'text'})
 
     def test_exclude_fields(self):
         ss = ModelStrategy(Model1, True) - ["date", "time", "datetime"]
-        sj = simplejson.loads(to_json(Model1.all(), ss))
+        sj = json.loads(to_json(Model1.all(), ss))
         self.assertEqual(sj[1],
             {   u'category': u'category', u'rating': 23, u'list_': [1, 2, 3],
                 u'string': u'string', u'reference': {u'model2_prop': None},
@@ -98,7 +108,7 @@ class TestJsonSerialization(unittest2.TestCase):
         ss = ModelStrategy(Model1, True) - ["date", "time", "datetime"]
         q = Model1.all()
         dict_data = {'foo':'foo', 'models':q}
-        sj = simplejson.loads(to_json(dict_data, ss))
+        sj = json.loads(to_json(dict_data, ss))
         self.assertEqual(sj['models'][1],
             {
                 u'category': u'category', u'rating': 23, u'list_': [1, 2, 3], u'string': u'string',

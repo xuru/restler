@@ -3,17 +3,25 @@ import copy
 import datetime
 import decimal
 import pprint
-import simplejson
 import types
 
 from xml.etree import ElementTree as ET
+
+try:
+    import json
+except ImportError:
+    try:
+        import simplejson as json
+    except ImportError:
+        raise RuntimeError(
+            'A JSON parser is required, e.g., simplejson at '
+            'http://pypi.python.org/pypi/simplejson/')
 
 from google.appengine.ext import blobstore
 from google.appengine.ext import db
 from google.appengine.api import users
 
 from restler import models
-
 
 import datetime_safe
 
@@ -344,7 +352,7 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
                         model[field_name] = getattr(obj, field_name) 
         return ret
     if type_ == "json":
-        class AEEncoder(simplejson.JSONEncoder):
+        class AEEncoder(json.JSONEncoder):
             def default(self, obj):
                 return default_impl(obj)
         return AEEncoder
@@ -371,7 +379,7 @@ def to_json(thing, strategy=None, context={}):
     mappings = strategy.mappings
     style = strategy.style
     encoder = encoder_builder("json", mappings, style, context)
-    return simplejson.dumps(thing, cls=encoder, indent=style["json"]["indent"])
+    return json.dumps(thing, cls=encoder, indent=style["json"]["indent"])
 
 
 def _encode_xml(thing, node, strategy, style, context):

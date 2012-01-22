@@ -6,7 +6,6 @@ from google.appengine.api import users
 from restler.serializers import ModelStrategy, SerializationStrategy, to_xml, SKIP
 from tests.models import Model1, Model2
 from pprint import pformat
-from django.utils import simplejson
 from datetime import datetime
 
 from xml.etree import ElementTree as ET
