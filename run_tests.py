@@ -7,16 +7,16 @@ gae_path = '/usr/local/google_appengine'
 current_path = os.path.abspath(os.path.dirname(__file__))
 tests_path = os.path.join(current_path, 'tests')
 test_app_path = os.path.join(current_path, 'tests', 'app')
-restler_path = os.path.join(current_path, 'restler')
-lib_path = os.path.join(current_path, 'lib')
+agar_path = os.path.join(current_path, 'agar')
+agar_lib_path = os.path.join(current_path, 'lib')
 
 sys.path[0:0] = [
     current_path,
     tests_path,
     test_app_path,
-    restler_path,
-    lib_path,
     gae_path,
+    agar_path,
+    agar_lib_path,
     # SDK libs.
     os.path.join(gae_path, 'lib', 'django_0_96'),
     os.path.join(gae_path, 'lib', 'yaml', 'lib'),
@@ -27,6 +27,7 @@ sys.path[0:0] = [
     os.path.join(gae_path, 'lib', 'whoosh'),
     os.path.join(gae_path, 'lib', 'WebOb'),
     os.path.join(gae_path, 'lib', 'ipaddr'),
+    os.path.join(gae_path, 'lib', 'webapp2'),
 ]
 
 import unittest2
@@ -46,7 +47,7 @@ from unittest2.main import main_
 config = matcher = None
 
 try:
-    config, matcher = dev_appserver.LoadAppConfig("tests/app", {})
+    config, matcher, from_cache = dev_appserver.LoadAppConfig("tests/app", {})
 except yaml_errors.EventListenerError, e:
     logging.error('Fatal error when loading application configuration:\n' + str(e))
 except dev_appserver.InvalidAppConfigError, e:
@@ -64,9 +65,7 @@ args[dev_appserver_main.ARG_PROSPECTIVE_SEARCH_PATH] = os.path.join(
 args[dev_appserver_main.ARG_HISTORY_PATH] = os.path.join(
         tempfile.gettempdir(), 'dev_appserver.test.datastore.history')
 
-from google.appengine.api import app_identity
 dev_appserver.SetupStubs(config.application, **args)
-os.environ['APPLICATION_ID'] = 'dev~%s' % app_identity.get_application_id()
 
 
 if __name__ == "__main__":
