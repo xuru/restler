@@ -1,14 +1,13 @@
 
 import unittest2
 
-from google.appengine.ext import db
 from google.appengine.api import users
-from restler.serializers import ModelStrategy, SerializationStrategy, to_xml, SKIP
+from restler.serializers import ModelStrategy, to_xml
 from tests.models import Model1, Model2
-from pprint import pformat
 from datetime import datetime
 
 from xml.etree import ElementTree as ET
+
 
 class TestXmlSerialization(unittest2.TestCase):
 
@@ -23,29 +22,29 @@ class TestXmlSerialization(unittest2.TestCase):
         m2 = Model2()
         m2_key = m2.put()
         m.string = "string"
-        m.bytestring = "\00\0x" 
-        m.boolean = True 
+        m.bytestring = "\00\0x"
+        m.boolean = True
         m.integer = 123
-        m.float_ = 22.0 
-        m.datetime = datetime.now() 
-        m.date = datetime.now().date() 
-        m.time = datetime.now().time() 
-        m.list_ = [1,2,3]
-        m.stringlist = ["one", "two", "three"] 
+        m.float_ = 22.0
+        m.datetime = datetime.now()
+        m.date = datetime.now().date()
+        m.time = datetime.now().time()
+        m.list_ = [1, 2, 3]
+        m.stringlist = ["one", "two", "three"]
         m.reference = m2
         m.selfreference = ref
-        m.blobreference = None # Todo
-        m.user = users.get_current_user() 
-        m.blob = "binary data" # Todo
+        m.blobreference = None  # Todo
+        m.user = users.get_current_user()
+        m.blob = "binary data"  # Todo
         m.text = "text"
         m.category = "category"
-        m.link = "http://www.yahoo.com" 
-        m.email = "joe@yahoo.com" 
+        m.link = "http://www.yahoo.com"
+        m.email = "joe@yahoo.com"
         m.geopt = "1.0, 2.0"
-        m.im = "http://aim.com/ joe@yahoo.com" 
-        m.phonenumber = "612-292-4339" 
-        m.postaladdress = "234 Shady Oak Rd., Eden Prairie, MN, 55218" 
-        m.rating = 23 
+        m.im = "http://aim.com/ joe@yahoo.com"
+        m.phonenumber = "612-292-4339"
+        m.postaladdress = "234 Shady Oak Rd., Eden Prairie, MN, 55218"
+        m.rating = 23
         key = m.put()
 
     def tearDown(self):

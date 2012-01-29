@@ -400,7 +400,8 @@ def _encode_xml(thing, node, strategy, style, context):
         # so we use a <key>value</key> format
         # Allow overriding default
         el = xml_style["dict"](node, thing)
-        if el is None: el = node
+        if el is None:
+            el = node
         for key, value in thing.items():
             if not isinstance(key, basestring):
                 raise ValueError("key is not a valid string")  # TODO better error message needed
@@ -418,7 +419,8 @@ def _encode_xml(thing, node, strategy, style, context):
     elif isinstance(thing, list):
         # Allow overriding default
         el = xml_style["list"](node, thing)
-        if el is None: el = node
+        if el is None:
+            el = node
         for value in thing:
             if isinstance(value, db.Model):
                 # Note: we don't create an item in this circumstance

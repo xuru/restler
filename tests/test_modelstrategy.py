@@ -1,7 +1,8 @@
 import unittest
 
-from restler.serializers import ModelStrategy, to_json
+from restler.serializers import ModelStrategy
 from tests.models import Model1
+
 
 class ModelStrategyTest(unittest.TestCase):
     def test_empty_strategy(self):
@@ -27,7 +28,7 @@ class ModelStrategyTest(unittest.TestCase):
 
     def test_remove_field(self):
         self.assertEqual(
-            len(ModelStrategy(Model1, True).fields)-1,
+            len(ModelStrategy(Model1, True).fields) - 1,
             len((ModelStrategy(Model1, True) - ["rating"]).fields))
 
     def test_add_remove_property(self):
@@ -35,5 +36,3 @@ class ModelStrategyTest(unittest.TestCase):
 
     def test_overridine_field(self):
         self.assertTrue(callable(((ModelStrategy(Model1) + ["rating"]) << [{"rating": lambda o: o.rating}]).fields[0][1]))
-
-
