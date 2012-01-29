@@ -17,10 +17,10 @@ class TestXmlSerialization(unittest2.TestCase):
         for e in Model2.all():
             e.delete()
         ref = Model1()
-        ref_key = ref.put()
+        ref.put()
         m = Model1()
         m2 = Model2()
-        m2_key = m2.put()
+        m2.put()
         m.string = "string"
         m.bytestring = "\00\0x"
         m.boolean = True
@@ -45,7 +45,7 @@ class TestXmlSerialization(unittest2.TestCase):
         m.phonenumber = "612-292-4339"
         m.postaladdress = "234 Shady Oak Rd., Eden Prairie, MN, 55218"
         m.rating = 23
-        key = m.put()
+        m.put()
 
     def tearDown(self):
         for e in Model1.all():
