@@ -143,6 +143,6 @@ class TestJsonSerialization(unittest2.TestCase):
             + [{"my_method": lambda obj, context: context["foo"]}], context={"foo": "woohoo"}),
             {"my_method": "woohoo"})
 
-    def test_alias_field3(self):
+    def test_alias_field4(self):
         self.assertEqual(flip(Model2(), ModelStrategy(Model2) + [{"yes": lambda o: "yes"}, {"no": lambda o: SKIP}]),
             {"yes": "yes"})
