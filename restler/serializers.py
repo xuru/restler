@@ -11,8 +11,11 @@ from xml.etree import ElementTree as ET
 
 from google.appengine.ext import blobstore
 from google.appengine.ext import db
-#from google.appengine.ext import ndb   #TODO: Uncomment and remove /lib/usr version when the official in the SDK
-import ndb
+try:
+    #from google.appengine.ext import ndb   #TODO: Uncomment and remove /lib/usr version when the official in the SDK
+    import ndb
+except:
+    ndb = db
 
 from google.appengine.api import users
 
@@ -57,7 +60,7 @@ def get_kind(obj):
 
 def get_properties(obj):
     try:
-        obj.properties()
+        return obj.properties()
     except AttributeError:
         return obj._properties
 
