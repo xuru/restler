@@ -3,6 +3,7 @@ import copy
 import datetime
 import decimal
 import pprint
+from webapp2 import cached_property
 from webapp2_extras.json import json as simplejson
 #import simplejson
 import types
@@ -12,10 +13,12 @@ from xml.etree import ElementTree as ET
 from google.appengine.ext import blobstore
 from google.appengine.ext import db
 try:
-    #from google.appengine.ext import ndb   #TODO: Uncomment and remove /lib/usr version when the official in the SDK
     import ndb
-except:
-    ndb = db
+except ImportError: # pragma: no cover
+    try:
+        from google.appengine.ext import ndb
+    except ImportError: # pragma: no cover
+        ndb = db
 
 from google.appengine.api import users
 
@@ -190,6 +193,7 @@ class ModelStrategy(object):
                         fields = set(self.model._properties.iterkeys()) #For ndb.model
                     if (name in fields
                             or isinstance(getattr(self.model, name, None), property)
+                            or isinstance(getattr(self.model, name, None), cached_property)
                             or callable(getattr(self.model, name, None))):
                         model_strategy.fields.append(name)
                         names[name] = name
