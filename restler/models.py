@@ -19,7 +19,7 @@ class TransientModel(object):
         for prop in self.fields():
             setattr(self, prop, kwargs.get(prop))
             if prop in self.required_fields() and getattr(self, prop) is None:
-                raise AttributeError, 'The property: %s is required.' % prop
+                raise AttributeError('The property: %s is required.' % prop)
 
     def properties(self):
         return dict([(prop, getattr(self, prop)) for prop in self.fields()])
