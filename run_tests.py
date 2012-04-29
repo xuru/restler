@@ -25,7 +25,7 @@ sys.path[0:0] = [
     os.path.join(gae_path, 'lib', 'fancy_urllib'),
     os.path.join(gae_path, 'lib', 'antlr3'),
     os.path.join(gae_path, 'lib', 'whoosh'),
-    os.path.join(gae_path, 'lib', 'WebOb'),
+    os.path.join(gae_path, 'lib', 'webob_1_1_1'),
     os.path.join(gae_path, 'lib', 'ipaddr'),
     os.path.join(gae_path, 'lib', 'webapp2'),
 ]
