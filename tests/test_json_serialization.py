@@ -1,4 +1,5 @@
 
+import json
 import unittest
 
 from datetime import datetime
@@ -6,16 +7,6 @@ from google.appengine.api import users
 from restler.serializers import ModelStrategy, to_json, SKIP
 
 from tests.models import Model1, Model2
-
-try:
-    import json
-except ImportError:
-    try:
-        import simplejson as json
-    except ImportError:
-        raise RuntimeError(
-            'A JSON parser is required, e.g., simplejson at '
-            'http://pypi.python.org/pypi/simplejson/')
 
 
 def flip(*args, **kwargs):
