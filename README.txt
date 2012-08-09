@@ -3,7 +3,7 @@ restler
 
 Restler is an object Serialization library for the web. It supports
 translating objects to JSON or XML. Currently, it is targeted at
-Google App Engine. Documentation can be found at:
+Google App Engine with python 2.7. Documentation can be found at:
 http://substrate-docs.appspot.com/restler.html
 
 If you are using App Engine, you may also be interested in Substrate,
@@ -30,7 +30,7 @@ To run restler's tests::
 
   ./run_tests.py
 
-Running tests requires unittest2 and the Google App Engine SDK.
+Running tests requires python 2.7 the Google App Engine SDK.
   
 Usage
 -----
