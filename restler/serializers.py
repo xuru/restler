@@ -10,17 +10,8 @@ from webapp2 import cached_property
 
 from xml.etree import ElementTree as ET
 
-from google.appengine.ext import blobstore
-from google.appengine.ext import db
-try:
-    import ndb
-except ImportError:  # pragma: no cover
-    try:
-        from google.appengine.ext import ndb
-    except ImportError:  # pragma: no cover
-        ndb = db
-
 from google.appengine.api import users
+from google.appengine.ext import blobstore, db, ndb
 
 from restler import models
 
