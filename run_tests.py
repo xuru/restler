@@ -30,7 +30,7 @@ sys.path[0:0] = [
     os.path.join(gae_path, 'lib', 'webapp2'),
 ]
 
-import unittest2
+import unittest
 
 import logging
 import tempfile
@@ -38,10 +38,6 @@ import tempfile
 from google.appengine.api import yaml_errors
 from google.appengine.tools import dev_appserver
 from google.appengine.tools import dev_appserver_main
-
-
-__unittest = True
-from unittest2.main import main_
 
 
 config = matcher = None
@@ -69,5 +65,5 @@ dev_appserver.SetupStubs(config.application, **args)
 
 
 if __name__ == "__main__":
-    sys.argv = ['unit2', 'discover', '--start-directory', 'tests']
-    main_()
+    sys.argv = ['-m', 'discover', 'tests']
+    unittest.main(argv=sys.argv)

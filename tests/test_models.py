@@ -1,6 +1,6 @@
 from __future__ import with_statement
 
-import unittest2 as unittest
+import unittest
 
 from restler import models
 

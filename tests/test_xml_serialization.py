@@ -1,5 +1,5 @@
 
-import unittest2
+import unittest
 
 from google.appengine.api import users
 from restler.serializers import ModelStrategy, to_xml
@@ -9,7 +9,7 @@ from datetime import datetime
 from xml.etree import ElementTree as ET
 
 
-class TestXmlSerialization(unittest2.TestCase):
+class TestXmlSerialization(unittest.TestCase):
 
     def setUp(self):
         for e in Model1.all():

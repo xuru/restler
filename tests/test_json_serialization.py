@@ -1,5 +1,5 @@
 
-import unittest2
+import unittest
 
 from datetime import datetime
 from google.appengine.api import users
@@ -22,7 +22,7 @@ def flip(*args, **kwargs):
     return json.loads(to_json(*args, **kwargs))
 
 
-class TestJsonSerialization(unittest2.TestCase):
+class TestJsonSerialization(unittest.TestCase):
 
     def setUp(self):
         for e in Model1.all():
