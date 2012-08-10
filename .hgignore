@@ -16,7 +16,6 @@ syntax: glob
 _generated_media/*
 .dynamic_media/*
 .coverage
-.coveragerc
 htmlcov/*
 .idea/*
 docs/static/_build/*
