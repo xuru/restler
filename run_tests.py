@@ -18,16 +18,19 @@ sys.path[0:0] = [
     agar_path,
     agar_lib_path,
     # SDK libs.
-    os.path.join(gae_path, 'lib', 'django_0_96'),
-    os.path.join(gae_path, 'lib', 'yaml', 'lib'),
-    os.path.join(gae_path, 'lib', 'protorpc'),
-    os.path.join(gae_path, 'lib', 'simplejson'),
-    os.path.join(gae_path, 'lib', 'fancy_urllib'),
     os.path.join(gae_path, 'lib', 'antlr3'),
-    os.path.join(gae_path, 'lib', 'whoosh'),
-    os.path.join(gae_path, 'lib', 'webob_1_1_1'),
+    os.path.join(gae_path, 'lib', 'django_0_96'),
+    os.path.join(gae_path, 'lib', 'fancy_urllib'),
     os.path.join(gae_path, 'lib', 'ipaddr'),
+    os.path.join(gae_path, 'lib', 'jinja2'),
+    os.path.join(gae_path, 'lib', 'protorpc'),
+    os.path.join(gae_path, 'lib', 'PyAMF'),
+    os.path.join(gae_path, 'lib', 'markupsafe'),
+    os.path.join(gae_path, 'lib', 'webob_1_1_1'),
     os.path.join(gae_path, 'lib', 'webapp2'),
+    os.path.join(gae_path, 'lib', 'yaml', 'lib'),
+    os.path.join(gae_path, 'lib', 'simplejson'),
+    os.path.join(gae_path, 'lib', 'whoosh'),
 ]
 
 import unittest
