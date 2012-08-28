@@ -98,7 +98,7 @@ class TestJsonSerialization(unittest.TestCase):
         )
 
     def test_valid_serialization(self):
-        ss = ModelStrategy(Model1, True) - ["date", "time", "datetime"]
+        ss = ModelStrategy(Model1, include_all_fields=True) - ["date", "time", "datetime"]
         q = Model1.all()
         dict_data = {'foo': 'foo', 'models': q}
         sj = json.loads(to_json(dict_data, ss))

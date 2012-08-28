@@ -148,7 +148,10 @@ class ModelStrategy(object):
         """
         self.model = model
         if include_all_fields:
-            self.fields = [f for f in model.fields()]
+            try:
+                self.fields = list(model.properties().iterkeys())  # For db.model
+            except AttributeError:
+                self.fields = list(model._properties.iterkeys())  # For ndb.model
         else:
             self.fields = []
         self.name = output_name
@@ -296,6 +299,9 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
         # Load objects from the datastore (could be done in parallel)
         if isinstance(obj, db.Query):
             return [o for o in obj]
+        if isinstance(obj, ndb.query.Query):
+            return [o for o in obj]
+
         if isinstance(obj, datetime.datetime):
             d = datetime_safe.new_datetime(obj)
             return d.strftime("%s %s" % (DATE_FORMAT, TIME_FORMAT))
