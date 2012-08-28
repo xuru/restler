@@ -277,10 +277,11 @@ class ModelStrategy(object):
 def encoder_builder(type_, strategy=None, style=None, context={}):
     def default_impl(obj):
         # Load objects from the datastore (could be done in parallel)
-        if isinstance(obj, db.Query):
-            return [o for o in obj]
-        if isinstance(obj, ndb.query.Query):
-            return [o for o in obj]
+        if strategy:
+            for stat in strategy:
+                if hasattr(stat, 'restler_collection_types'):
+                    if stat.restler_collection_types(obj):
+                        return [o for o in obj]
 
         if isinstance(obj, datetime.datetime):
             d = datetime_safe.new_datetime(obj)
