@@ -7,7 +7,7 @@ def ae_db_serializer(cls):
 
     @classmethod
     def restler_kind(cls, model):
-        return model.kind()
+        return model.kind().lower()
 
     cls.restler_properties = restler_properties
     cls.restler_kind = restler_kind
@@ -23,10 +23,10 @@ def ae_ndb_serializer(cls):
     @classmethod
     def restler_kind(cls, model):
         try:
-            return model.__class__.__name__
+            return model.__class__.__name__.lower()
         except:
             # When is this the case?
-            return model.__name__
+            return model.__name__.lower()
 
     cls.restler_properties = restler_properties
     cls.restler_kind = restler_kind
