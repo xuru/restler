@@ -1,6 +1,9 @@
 from google.appengine.ext import blobstore, db, ndb
 
+from restler.decorators import ae_db_serializer, ae_ndb_serializer
 
+
+@ae_db_serializer
 class Model2(db.Model):
     model2_prop = db.StringProperty()
 
@@ -9,6 +12,7 @@ class Model2(db.Model):
         return "I say blah!"
 
 
+@ae_db_serializer
 class Model1(db.Model):
     string = db.StringProperty()
     bytestring = db.ByteStringProperty()
@@ -36,6 +40,7 @@ class Model1(db.Model):
     rating = db.RatingProperty()
 
 
+@ae_ndb_serializer
 class NdbModel2(ndb.Model):
     model2_prop = ndb.StringProperty()
 
@@ -44,6 +49,7 @@ class NdbModel2(ndb.Model):
         return "I say blah!"
 
 
+@ae_ndb_serializer
 class NdbModel1(ndb.Model):
     string = ndb.StringProperty()
     boolean = ndb.BooleanProperty()

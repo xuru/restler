@@ -24,7 +24,7 @@ TIME_FORMAT = "%H:%M:%S"
 DEFAULT_STYLE = {
     'xml': {
         "root": lambda thing: ET.Element("result"),
-        "model": lambda el, thing: ET.SubElement(el, get_kind(thing).lower()),
+        "model": lambda el, thing: ET.SubElement(el, thing.restler_kind(thing).lower()),
         "list": lambda el, thing: None,  # top level element for a list
         "list_item": lambda el, thing: ET.SubElement(el, "item"),  # An item in a list
         "dict": lambda el, thing: None,  # top level element for a dict
@@ -43,23 +43,6 @@ class SkipField(object):
     pass
 
 SKIP = SkipField()
-
-
-def get_kind(obj):
-    try:
-        return obj.kind()  # For db.model
-    except:  # For ndb.model
-        try:
-            return obj.__class__.__name__
-        except:
-            return obj.__name__
-
-
-def get_properties(obj):
-    try:
-        return obj.properties()
-    except AttributeError:
-        return obj._properties
 
 
 def json_response(response, model_or_query, strategy=None, status_code=200, context={}):
@@ -148,10 +131,7 @@ class ModelStrategy(object):
         """
         self.model = model
         if include_all_fields:
-            try:
-                self.fields = list(model.properties().iterkeys())  # For db.model
-            except AttributeError:
-                self.fields = list(model._properties.iterkeys())  # For ndb.model
+            self.fields = model.restler_properties(model)
         else:
             self.fields = []
         self.name = output_name
@@ -329,15 +309,15 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
         ret = {}  # What we're most likely going to return (populated, of course)
         if isinstance(obj, (db.Model, models.TransientModel, ndb.Model)):
             model = {}
-            kind = get_kind(obj).lower()
+            kind = obj.restler_kind(obj).lower()
             # User the model's properties
             if strategy is None:
-                fields = get_properties(obj).keys()
+                fields = obj.restler_properties(obj)
             else:
                 # Load the customized mappings
                 fields = strategy.get(obj.__class__, None)
                 if fields is None:
-                    fields = get_properties(obj).keys()
+                    fields = obj.restler_properties(obj)
                 # If it's a dict, we're changing the output_name for the model
                 elif isinstance(fields, dict):
                     if len(fields.keys()) != 1:
