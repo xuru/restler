@@ -291,14 +291,10 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
             return d.strftime(DATE_FORMAT)
         elif isinstance(obj, datetime.time):
             return obj.strftime(TIME_FORMAT)
-        if isinstance(obj, datetime.datetime):
-            return obj.strftime("%s %s" % (DATE_FORMAT, TIME_FORMAT))
-        elif isinstance(obj, datetime.date):
-            return obj.strftime(DATE_FORMAT)
-        elif isinstance(obj, datetime.time):
-            return obj.strftime(TIME_FORMAT)
-        elif isinstance(obj, decimal.Decimal):
+
+        if isinstance(obj, decimal.Decimal):
             return str(obj)
+
         if isinstance(obj, db.GeoPt):
             return "%s %s" % (obj.lat, obj.lon)
         if isinstance(obj, db.IM):
@@ -307,6 +303,7 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
             return obj.user_id() or obj.email()
         if isinstance(obj, blobstore.BlobInfo):
             return str(obj.key())  # TODO is this correct?
+
         ret = {}  # What we're most likely going to return (populated, of course)
         if isinstance(obj, (db.Model, models.TransientModel, ndb.Model)):
             model = {}
