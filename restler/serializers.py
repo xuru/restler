@@ -24,7 +24,7 @@ TIME_FORMAT = "%H:%M:%S"
 DEFAULT_STYLE = {
     'xml': {
         "root": lambda thing: ET.Element("result"),
-        "model": lambda el, thing: ET.SubElement(el, thing.restler_kind(thing).lower()),
+        "model": lambda el, thing: ET.SubElement(el, thing.restler_kind(thing)),
         "list": lambda el, thing: None,  # top level element for a list
         "list_item": lambda el, thing: ET.SubElement(el, "item"),  # An item in a list
         "dict": lambda el, thing: None,  # top level element for a dict
@@ -309,7 +309,7 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
         ret = {}  # What we're most likely going to return (populated, of course)
         if isinstance(obj, (db.Model, models.TransientModel, ndb.Model)):
             model = {}
-            kind = obj.restler_kind(obj).lower()
+            kind = obj.restler_kind(obj)
             # User the model's properties
             if strategy is None:
                 fields = obj.restler_properties(obj)
