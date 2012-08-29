@@ -7,7 +7,6 @@ def ae_common_encoder(obj):
 
 
 def ae_db_serializer(cls):
-    # from google.appengine.api import users
     from google.appengine.ext import blobstore, db
 
     @classmethod
