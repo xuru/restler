@@ -3,7 +3,7 @@
 def ae_common_encoder(obj):
     from google.appengine.api import users
     if isinstance(obj, users.User):
-            return obj.user_id() or obj.email()
+        return obj.user_id() or obj.email()
 
 
 def ae_db_serializer(cls):
