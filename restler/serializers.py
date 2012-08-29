@@ -10,8 +10,7 @@ from webapp2 import cached_property
 
 from xml.etree import ElementTree as ET
 
-from google.appengine.api import users
-from google.appengine.ext import blobstore, db, ndb
+from google.appengine.ext import db, ndb
 
 from restler import models
 
@@ -283,6 +282,11 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
                     if stat.restler_collection_types(obj):
                         return [o for o in obj]
 
+                if hasattr(stat, 'restler_encoder'):
+                        encoded_obj = stat.restler_encoder(obj)
+                        if encoded_obj is not None:
+                            return encoded_obj
+
         if isinstance(obj, datetime.datetime):
             d = datetime_safe.new_datetime(obj)
             return d.strftime("%s %s" % (DATE_FORMAT, TIME_FORMAT))
@@ -291,18 +295,8 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
             return d.strftime(DATE_FORMAT)
         if isinstance(obj, datetime.time):
             return obj.strftime(TIME_FORMAT)
-
         if isinstance(obj, decimal.Decimal):
             return str(obj)
-
-        if isinstance(obj, db.GeoPt):
-            return "%s %s" % (obj.lat, obj.lon)
-        if isinstance(obj, db.IM):
-            return "%s %s" % (obj.protocol, obj.address)
-        if isinstance(obj, users.User):
-            return obj.user_id() or obj.email()
-        if isinstance(obj, blobstore.BlobInfo):
-            return str(obj.key())  # TODO is this correct?
 
         ret = {}  # What we're most likely going to return (populated, of course)
         if isinstance(obj, (db.Model, models.TransientModel, ndb.Model)):
