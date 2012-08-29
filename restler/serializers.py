@@ -286,10 +286,10 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
         if isinstance(obj, datetime.datetime):
             d = datetime_safe.new_datetime(obj)
             return d.strftime("%s %s" % (DATE_FORMAT, TIME_FORMAT))
-        elif isinstance(obj, datetime.date):
+        if isinstance(obj, datetime.date):
             d = datetime_safe.new_date(obj)
             return d.strftime(DATE_FORMAT)
-        elif isinstance(obj, datetime.time):
+        if isinstance(obj, datetime.time):
             return obj.strftime(TIME_FORMAT)
 
         if isinstance(obj, decimal.Decimal):
