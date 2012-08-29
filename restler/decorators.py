@@ -1,7 +1,13 @@
 
 
-def ae_db_serializer(cls):
+def ae_common_encoder(obj):
     from google.appengine.api import users
+    if isinstance(obj, users.User):
+            return obj.user_id() or obj.email()
+
+
+def ae_db_serializer(cls):
+    # from google.appengine.api import users
     from google.appengine.ext import blobstore, db
 
     @classmethod
@@ -17,10 +23,10 @@ def ae_db_serializer(cls):
             return "%s %s" % (obj.lat, obj.lon)
         if isinstance(obj, db.IM):
             return "%s %s" % (obj.protocol, obj.address)
-        if isinstance(obj, users.User):
-            return obj.user_id() or obj.email()
         if isinstance(obj, blobstore.BlobInfo):
             return str(obj.key())  # TODO is this correct?
+        if ae_common_encoder(obj):
+            return ae_common_encoder(obj)
 
     @classmethod
     def restler_kind(cls, model):
@@ -39,7 +45,6 @@ def ae_db_serializer(cls):
 
 
 def ae_ndb_serializer(cls):
-    from google.appengine.api import users
     from google.appengine.ext import ndb
 
     @classmethod
@@ -53,8 +58,8 @@ def ae_ndb_serializer(cls):
     def restler_encoder(cls, obj):
         if isinstance(obj, ndb.GeoPt):
             return "%s %s" % (obj.lat, obj.lon)
-        if isinstance(obj, users.User):
-            return obj.user_id() or obj.email()
+        if ae_common_encoder(obj):
+            return ae_common_encoder(obj)
 
     @classmethod
     def restler_kind(cls, model):
