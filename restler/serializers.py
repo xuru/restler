@@ -10,10 +10,7 @@ from webapp2 import cached_property
 
 from xml.etree import ElementTree as ET
 
-from google.appengine.ext import db, ndb
-
 from restler import models
-
 
 import datetime_safe
 
@@ -299,7 +296,7 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
             return str(obj)
 
         ret = {}  # What we're most likely going to return (populated, of course)
-        if isinstance(obj, (db.Model, models.TransientModel, ndb.Model)):
+        if hasattr(obj, 'restler_kind') or isinstance(obj, models.TransientModel):
             model = {}
             kind = obj.restler_kind(obj)
             # User the model's properties
@@ -413,7 +410,7 @@ def _encode_xml(thing, node, strategy, style, context):
         el = xml_style["list"](node, thing)
         if el is None: el = node
         for value in thing:
-            if isinstance(value, db.Model):
+            if hasattr(value, 'restler_kind'):
                 # Note: we don't create an item in this circumstance
                 _encode_xml(encoder(value), el, strategy, style, context)
                 continue
