@@ -164,10 +164,7 @@ class ModelStrategy(object):
                         else:
                             raise ValueError("Cannot add field.  '%s' already exists" % name)
                 elif name not in names:
-                    try:
-                        fields = self.model.fields()  # For db.model
-                    except AttributeError:
-                        fields = set(self.model._properties.iterkeys())  # For ndb.model
+                    fields = self.model.restler_properties(self.model)
                     if (name in fields
                             or isinstance(getattr(self.model, name, None), property)
                             or isinstance(getattr(self.model, name, None), cached_property)
