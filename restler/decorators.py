@@ -35,10 +35,19 @@ def ae_db_serializer(cls):
     def restler_properties(cls, model):
         return list(model.properties().iterkeys())
 
+    @classmethod
+    def restler_extra_types(cls, obj):
+        from webapp2 import cached_property
+        if isinstance(obj, cached_property):
+            return True
+        else:
+            return False
+
     cls.restler_collection_types = restler_collection_types
     cls.restler_encoder = restler_encoder
     cls.restler_kind = restler_kind
     cls.restler_properties = restler_properties
+    cls.restler_extra_types = restler_extra_types
 
     return cls
 
@@ -72,9 +81,18 @@ def ae_ndb_serializer(cls):
     def restler_properties(cls, model):
         return list(model._properties.iterkeys())
 
+    @classmethod
+    def restler_extra_types(cls, obj):
+        from webapp2 import cached_property
+        if isinstance(obj, cached_property):
+            return True
+        else:
+            return False
+
     cls.restler_collection_types = restler_collection_types
     cls.restler_encoder = restler_encoder
     cls.restler_kind = restler_kind
     cls.restler_properties = restler_properties
+    cls.restler_extra_types = restler_extra_types
 
     return cls
