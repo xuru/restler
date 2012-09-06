@@ -143,12 +143,12 @@ class ModelStrategy(object):
                 names[prop] = prop
         return names
 
-    def __add(self, fields):
+    def __add(self, new_fields):
         names = self.__name_map()
         model_strategy = ModelStrategy(self.model, output_name=self.name)
         model_strategy.fields = self.fields[:]
-        if isinstance(fields, (tuple, list)):
-            for name in fields:
+        if isinstance(new_fields, (tuple, list)):
+            for name in new_fields:
                 if isinstance(name, dict):
                     name = name.items()
                 if isinstance(name, tuple):
