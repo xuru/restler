@@ -1,4 +1,5 @@
 from google.appengine.ext import blobstore, db, ndb
+from webapp2 import cached_property
 
 from restler.decorators import ae_db_serializer, ae_ndb_serializer
 
@@ -10,6 +11,10 @@ class Model2(db.Model):
     @property
     def my_method(self):
         return "I say blah!"
+
+    @cached_property
+    def my_cached_property(self):
+        return "my cached property"
 
 
 @ae_db_serializer
@@ -47,6 +52,10 @@ class NdbModel2(ndb.Model):
     @property
     def my_method(self):
         return "I say blah!"
+
+    @cached_property
+    def my_cached_property(self):
+        return "my cached property"
 
 
 @ae_ndb_serializer
