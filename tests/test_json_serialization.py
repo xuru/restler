@@ -137,3 +137,8 @@ class TestJsonSerialization(unittest.TestCase):
     def test_alias_field4(self):
         self.assertEqual(flip(Model2(), ModelStrategy(Model2) + [{"yes": lambda o: "yes"}, {"no": lambda o: SKIP}]),
             {"yes": "yes"})
+
+    def test_cached_property(self):
+        ss = ModelStrategy(Model2).include('my_cached_property')
+        sj = json.loads(to_json(Model2.all(), ss))
+        self.assertEqual(sj[0], {u'my_cached_property': u'my cached property'})

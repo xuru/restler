@@ -57,3 +57,8 @@ class TestXmlSerialization(unittest.TestCase):
         ss = ModelStrategy(NdbModel1) + [{"text": lambda o: "the_text"}]
         tree = ET.fromstring(to_xml(NdbModel1.query(), ss))
         self.assertEqual(len(tree.findall(".//the_text")), 0)
+
+    def test_cached_property(self):
+        ss = ModelStrategy(NdbModel2).include('my_cached_property')
+        tree = ET.fromstring(to_xml(NdbModel2.query(), ss))
+        self.assertEqual(len(tree.findall(".//my_cached_property")), 1)

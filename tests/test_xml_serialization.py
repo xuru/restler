@@ -70,3 +70,8 @@ class TestXmlSerialization(unittest.TestCase):
         ss = ModelStrategy(Model1) + [{"text": lambda o: "the_text"}]
         tree = ET.fromstring(to_xml(Model1.all(), ss))
         self.assertEqual(len(tree.findall(".//the_text")), 0)
+
+    def test_cached_property(self):
+        ss = ModelStrategy(Model2).include('my_cached_property')
+        tree = ET.fromstring(to_xml(Model2.all(), ss))
+        self.assertEqual(len(tree.findall(".//my_cached_property")), 1)
