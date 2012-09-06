@@ -6,6 +6,14 @@ def ae_common_encoder(obj):
         return obj.user_id() or obj.email()
 
 
+def ae_common_extra_types(obj):
+    from webapp2 import cached_property
+    if isinstance(obj, cached_property):
+        return True
+    else:
+        return False
+
+
 def ae_db_serializer(cls):
     from google.appengine.ext import blobstore, db
 
@@ -37,11 +45,7 @@ def ae_db_serializer(cls):
 
     @classmethod
     def restler_extra_types(cls, obj):
-        from webapp2 import cached_property
-        if isinstance(obj, cached_property):
-            return True
-        else:
-            return False
+        return ae_common_extra_types(obj)
 
     cls.restler_collection_types = restler_collection_types
     cls.restler_encoder = restler_encoder
@@ -83,11 +87,7 @@ def ae_ndb_serializer(cls):
 
     @classmethod
     def restler_extra_types(cls, obj):
-        from webapp2 import cached_property
-        if isinstance(obj, cached_property):
-            return True
-        else:
-            return False
+        return ae_common_extra_types(obj)
 
     cls.restler_collection_types = restler_collection_types
     cls.restler_encoder = restler_encoder
