@@ -6,8 +6,6 @@ import json
 import pprint
 import types
 
-from webapp2 import cached_property
-
 from xml.etree import ElementTree as ET
 
 from restler import models
@@ -167,8 +165,8 @@ class ModelStrategy(object):
                     fields = self.model.restler_properties(self.model)
                     if (name in fields
                             or isinstance(getattr(self.model, name, None), property)
-                            or isinstance(getattr(self.model, name, None), cached_property)
-                            or callable(getattr(self.model, name, None))):
+                            or callable(getattr(self.model, name, None))
+                            or self.model.restler_extra_types(getattr(self.model, name, None))):
                         model_strategy.fields.append(name)
                         names[name] = name
                     else:
