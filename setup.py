@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name = "restler-serialization",
-    version = "0.2",
+    version = "0.3",
     author = "Curtis Thompson",
     author_email = "curtis.thompson@gmail.com",
     description = "Restler provides flexible and configurable JSON and XML object serialization for the web",
