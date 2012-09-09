@@ -43,11 +43,13 @@ A db.Model or ndb.Model instance can be serialized with the default settings usi
 
 To include only certain fields, use a ``ModelStrategy``.
 When using a ``ModelStrategy``, you will need to use a restler model decorator.
+
 >>> @ae_db_serializer
 >>> class User(db.Model)
 >>>    ...
 
 Now setup the ``ModelStrategy``
+
 >>> person_strategy = ModelStrategy(Person).include("first_name", "last_name")
 >>> to_json(jean, person_strategy)
 '{"first_name": "Jeanne", "last_name": "d'Arc"}'
