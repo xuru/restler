@@ -1,24 +1,5 @@
 
 
-def ae_common_encoder(obj):
-    """
-    Common type specific encoders for app engine
-    """
-    from google.appengine.api import users
-    if isinstance(obj, users.User):
-        return obj.user_id() or obj.email()
-
-
-def ae_common_extra_types(obj):
-    """
-    Non-core python or app engine specific types that can be serialized
-    """
-    from webapp2 import cached_property
-    if isinstance(obj, cached_property):
-        return True
-    else:
-        return False
-
 
 def ae_db_serializer(cls):
     """
@@ -27,56 +8,41 @@ def ae_db_serializer(cls):
     from google.appengine.ext import blobstore, db
 
     @classmethod
-    def restler_collection_types(cls, obj):
+    def restler_types(cls):
         """
-        Allows Restler to handle a collection type by retrieving the models
+        A map of types types to callables that serialize those types.
         """
-        if isinstance(obj, db.Query):
-            return True
-        else:
-            return False
+        from google.appengine.api import users
+        from webapp2 import cached_property
+        return {
+            db.Query : lambda query: [obj for obj in query],
+            db.GeoPt : lambda obj: "%s %s" % (obj.lat, obj.lon),
+            db.IM: lambda obj: "%s %s" % (obj.protocol, obj.address),
+            users.User: lambda obj: obj.user_id() or obj.email(),
+            cached_property: lambda obj: cached_property,
+            blobstore.BlobInfo: lambda obj: str(obj.key())  # TODO is this correct?
+        }
+
+
 
     @classmethod
-    def restler_encoder(cls, obj):
-        """
-        Type specific encoders
-        """
-        if isinstance(obj, db.GeoPt):
-            return "%s %s" % (obj.lat, obj.lon)
-        if isinstance(obj, db.IM):
-            return "%s %s" % (obj.protocol, obj.address)
-        if isinstance(obj, blobstore.BlobInfo):
-            return str(obj.key())  # TODO is this correct?
-        if ae_common_encoder(obj):
-            return ae_common_encoder(obj)
-
-    @classmethod
-    def restler_kind(cls, model):
+    def restler_serialization_name(cls, model):
         """
         The lowercase model classname
         """
         return model.kind().lower()
 
     @classmethod
-    def restler_properties(cls, model):
+    def restler_property_names(cls, model):
         """
         List of model property names if *include_all_fields=True*
         Property must be from **google.appengine.ext.db.Property**
         """
         return list(model.properties().iterkeys())
 
-    @classmethod
-    def restler_extra_types(cls, obj):
-        """
-        Non-core python or app engine specific types that can be serialized
-        """
-        return ae_common_extra_types(obj)
-
-    cls.restler_collection_types = restler_collection_types
-    cls.restler_encoder = restler_encoder
-    cls.restler_kind = restler_kind
-    cls.restler_properties = restler_properties
-    cls.restler_extra_types = restler_extra_types
+    cls._restler_types = restler_types
+    cls._restler_serialization_name = restler_serialization_name
+    cls._restler_property_names = restler_property_names
 
     return cls
 
@@ -88,27 +54,21 @@ def ae_ndb_serializer(cls):
     from google.appengine.ext import ndb
 
     @classmethod
-    def restler_collection_types(cls, obj):
+    def restler_types(cls):
         """
-        Allows Restler to handle a collection type by retrieving the models
+        A map of types types to callables that serialize those types.
         """
-        if isinstance(obj, ndb.query.Query):
-            return True
-        else:
-            return False
+        from google.appengine.api import users
+        from webapp2 import cached_property
+        return {
+            ndb.query.Query : lambda query: [obj for obj in query],
+            ndb.GeoPt : lambda obj: "%s %s" % (obj.lat, obj.lon),
+            users.User: lambda obj: obj.user_id() or obj.email(),
+            cached_property: lambda obj: cached_property,
+        }
 
     @classmethod
-    def restler_encoder(cls, obj):
-        """
-        Type specific encoders
-        """
-        if isinstance(obj, ndb.GeoPt):
-            return "%s %s" % (obj.lat, obj.lon)
-        if ae_common_encoder(obj):
-            return ae_common_encoder(obj)
-
-    @classmethod
-    def restler_kind(cls, model):
+    def restler_serialization_name(cls, model):
         """
         The lowercase model classname
         """
@@ -119,24 +79,15 @@ def ae_ndb_serializer(cls):
             return model.__name__.lower()
 
     @classmethod
-    def restler_properties(cls, model):
+    def restler_property_names(cls, model):
         """
         List of model property names if *include_all_fields=True*
         Property must be from **google.appengine.ext.ndb.Property**
         """
         return list(model._properties.iterkeys())
 
-    @classmethod
-    def restler_extra_types(cls, obj):
-        """
-        Non-core python or app engine specific types that can be serialized
-        """
-        return ae_common_extra_types(obj)
-
-    cls.restler_collection_types = restler_collection_types
-    cls.restler_encoder = restler_encoder
-    cls.restler_kind = restler_kind
-    cls.restler_properties = restler_properties
-    cls.restler_extra_types = restler_extra_types
+    cls._restler_types = restler_types
+    cls._restler_serialization_name = restler_serialization_name
+    cls._restler_property_names = restler_property_names
 
     return cls

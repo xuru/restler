@@ -18,7 +18,7 @@ TIME_FORMAT = "%H:%M:%S"
 DEFAULT_STYLE = {
     'xml': {
         "root": lambda thing: ET.Element("result"),
-        "model": lambda el, thing: ET.SubElement(el, thing.restler_kind(thing)),
+        "model": lambda el, thing: ET.SubElement(el, thing._restler_serialization_name(thing)),
         "list": lambda el, thing: None,  # top level element for a list
         "list_item": lambda el, thing: ET.SubElement(el, "item"),  # An item in a list
         "dict": lambda el, thing: None,  # top level element for a dict
@@ -125,7 +125,7 @@ class ModelStrategy(object):
         """
         self.model = model
         if include_all_fields:
-            self.fields = model.restler_properties(model)
+            self.fields = model._restler_property_names(model)
         else:
             self.fields = []
         self.name = output_name
@@ -162,11 +162,12 @@ class ModelStrategy(object):
                         else:
                             raise ValueError("Cannot add field.  '%s' already exists" % name)
                 elif name not in names:
-                    fields = self.model.restler_properties(self.model)
+                    fields = self.model._restler_property_names(self.model)
                     if (name in fields
                             or isinstance(getattr(self.model, name, None), property)
                             or callable(getattr(self.model, name, None))
-                            or self.model.restler_extra_types(getattr(self.model, name, None))):
+                            or getattr(getattr(self.model, name, None), "__class__", None)
+                                in self.model._restler_types()):
                         model_strategy.fields.append(name)
                         names[name] = name
                     else:
@@ -266,19 +267,18 @@ class ModelStrategy(object):
 
 
 def encoder_builder(type_, strategy=None, style=None, context={}):
+    encoders = {}
+    for strat in strategy:
+        if hasattr(strat, '_restler_types'):
+            encoders.update(strat._restler_types())
+
+
     def default_impl(obj):
         # Load objects from the datastore (could be done in parallel)
         if strategy:
-            for stat in strategy:
-                if hasattr(stat, 'restler_collection_types'):
-                    if stat.restler_collection_types(obj):
-                        return [o for o in obj]
-
-                if hasattr(stat, 'restler_encoder'):
-                        encoded_obj = stat.restler_encoder(obj)
-                        if encoded_obj is not None:
-                            return encoded_obj
-
+            if obj is not None:
+                if obj.__class__ in encoders:
+                   return encoders[obj.__class__](obj)
         if isinstance(obj, datetime.datetime):
             d = datetime_safe.new_datetime(obj)
             return d.strftime("%s %s" % (DATE_FORMAT, TIME_FORMAT))
@@ -291,17 +291,17 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
             return str(obj)
 
         ret = {}  # What we're most likely going to return (populated, of course)
-        if hasattr(obj, 'restler_kind') or isinstance(obj, models.TransientModel):
+        if hasattr(obj, '_restler_serialization_name') or isinstance(obj, models.TransientModel):
             model = {}
-            kind = obj.restler_kind(obj)
+            kind = obj._restler_serialization_name(obj)
             # User the model's properties
             if strategy is None:
-                fields = obj.restler_properties(obj)
+                fields = obj._restler_property_names(obj)
             else:
                 # Load the customized mappings
                 fields = strategy.get(obj.__class__, None)
                 if fields is None:
-                    fields = obj.restler_properties(obj)
+                    fields = obj._restler_property_names(obj)
                 # If it's a dict, we're changing the output_name for the model
                 elif isinstance(fields, dict):
                     if len(fields.keys()) != 1:
@@ -405,7 +405,7 @@ def _encode_xml(thing, node, strategy, style, context):
         el = xml_style["list"](node, thing)
         if el is None: el = node
         for value in thing:
-            if hasattr(value, 'restler_kind'):
+            if hasattr(value, '_restler_serialization_name'):
                 # Note: we don't create an item in this circumstance
                 _encode_xml(encoder(value), el, strategy, style, context)
                 continue
