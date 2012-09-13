@@ -26,19 +26,19 @@ def ae_db_serializer(cls):
 
 
     @classmethod
-    def restler_serialization_name(cls, model):
+    def restler_serialization_name(cls):
         """
         The lowercase model classname
         """
-        return model.kind().lower()
+        return cls.kind().lower()
 
     @classmethod
-    def restler_property_names(cls, model):
+    def restler_property_names(cls):
         """
         List of model property names if *include_all_fields=True*
         Property must be from **google.appengine.ext.db.Property**
         """
-        return list(model.properties().iterkeys())
+        return list(cls.properties().iterkeys())
 
     cls._restler_types = restler_types
     cls._restler_serialization_name = restler_serialization_name
@@ -68,23 +68,19 @@ def ae_ndb_serializer(cls):
         }
 
     @classmethod
-    def restler_serialization_name(cls, model):
+    def restler_serialization_name(cls):
         """
         The lowercase model classname
         """
-        try:
-            return model.__class__.__name__.lower()
-        except:
-            # TODO When is this the case?
-            return model.__name__.lower()
+        return cls.__name__.lower()
 
     @classmethod
-    def restler_property_names(cls, model):
+    def restler_property_names(cls):
         """
         List of model property names if *include_all_fields=True*
         Property must be from **google.appengine.ext.ndb.Property**
         """
-        return list(model._properties.iterkeys())
+        return list(cls._properties.iterkeys())
 
     cls._restler_types = restler_types
     cls._restler_serialization_name = restler_serialization_name
