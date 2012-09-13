@@ -18,7 +18,7 @@ TIME_FORMAT = "%H:%M:%S"
 DEFAULT_STYLE = {
     'xml': {
         "root": lambda thing: ET.Element("result"),
-        "model": lambda el, thing: ET.SubElement(el, thing._restler_serialization_name(thing)),
+        "model": lambda el, thing: ET.SubElement(el, thing._restler_serialization_name()),
         "list": lambda el, thing: None,  # top level element for a list
         "list_item": lambda el, thing: ET.SubElement(el, "item"),  # An item in a list
         "dict": lambda el, thing: None,  # top level element for a dict
@@ -125,7 +125,7 @@ class ModelStrategy(object):
         """
         self.model = model
         if include_all_fields:
-            self.fields = model._restler_property_names(model)
+            self.fields = model._restler_property_names()
         else:
             self.fields = []
         self.name = output_name
@@ -162,7 +162,7 @@ class ModelStrategy(object):
                         else:
                             raise ValueError("Cannot add field.  '%s' already exists" % name)
                 elif name not in names:
-                    fields = self.model._restler_property_names(self.model)
+                    fields = self.model._restler_property_names()
                     if (name in fields
                             or isinstance(getattr(self.model, name, None), property)
                             or callable(getattr(self.model, name, None))
@@ -293,15 +293,15 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
         ret = {}  # What we're most likely going to return (populated, of course)
         if hasattr(obj, '_restler_serialization_name') or isinstance(obj, models.TransientModel):
             model = {}
-            kind = obj._restler_serialization_name(obj)
+            kind = obj._restler_serialization_name()
             # User the model's properties
             if strategy is None:
-                fields = obj._restler_property_names(obj)
+                fields = obj._restler_property_names()
             else:
                 # Load the customized mappings
                 fields = strategy.get(obj.__class__, None)
                 if fields is None:
-                    fields = obj._restler_property_names(obj)
+                    fields = obj._restler_property_names()
                 # If it's a dict, we're changing the output_name for the model
                 elif isinstance(fields, dict):
                     if len(fields.keys()) != 1:
