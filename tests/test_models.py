@@ -26,9 +26,6 @@ class MixedTransientModel(models.TransientModel):
 
 
 class TransientModelTest(unittest.TestCase):
-    def test_kind(self):
-        self.assertEqual('RequiredTransientModel', RequiredTransientModel.kind())
-        self.assertEqual('OptionalTransientModel', OptionalTransientModel.kind())
 
     def test_required_fields(self):
         self.assertEqual(('sku', 'model_number'), RequiredTransientModel.required_fields())
