@@ -21,37 +21,6 @@ def wrap_method(cls, method):
     else:
         setattr(cls, method_name, method)
 
-"""
-def wrap_restler_types(cls, method):
-    if hasattr(cls, "_restler_types"):
-        orig_cls_method = cls._restler_types
-        @classmethod
-        def wrap(cls_):
-            cls._restler_types = method
-            aggregate_types = {}
-            aggregate_types.update(orig_cls_method())
-            aggregate_types.update(cls._restler_types())
-            return aggregate_types
-        cls._restler_types = wrap
-    else:
-        cls._restler_types = method
-
-def wrap_restler_property_names(cls, method):
-    if hasattr(cls, "_restler_property_names"):
-        orig_cls_method = cls._restler_property_names
-        @classmethod
-        def wrap(cls_):
-            cls._restler_property_names = method
-            aggregate_properties = set()
-            print orig_cls_method(), type(orig_cls_method()), type(orig_cls_method()[0])
-            aggregate_properties.update(set(orig_cls_method()))
-            aggregate_properties.update(set(cls._restler_property_names()))
-            return list(aggregate_properties)
-        cls._restler_property_names = wrap
-    else:
-        cls._restler_property_names = method
-"""
-
 
 def ae_db_serializer(cls):
     """
