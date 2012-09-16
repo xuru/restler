@@ -5,6 +5,7 @@ from restler.decorators import ae_db_serializer, ae_ndb_serializer
 
 
 @ae_db_serializer
+@ae_db_serializer
 class Model2(db.Model):
     model2_prop = db.StringProperty()
 
