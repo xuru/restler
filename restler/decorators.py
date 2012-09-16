@@ -16,6 +16,10 @@ def wrap_method(cls, method):
                 aggregate = list(aggregate)
             elif isinstance(aggregate, dict): #_restler_property_names
                 aggregate.update(method())
+            elif isinstance(aggregate, str):
+                # Developer shouldn't really do this, but we'll try
+                # to do the correct thing and use the most recently defined name
+                aggregate = method() # _restler_serialization_name
             return aggregate
         setattr(cls, method_name, wrap)
     else:
