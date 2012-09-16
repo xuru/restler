@@ -1,4 +1,56 @@
 
+def wrap_method(cls, method):
+    from copy import copy
+    method_name = method.__func__.__name__
+    method_param = method
+    if hasattr(cls, method_name):
+        orig_cls_method = getattr(cls, method_name)
+        @classmethod
+        def wrap(cls_):
+            setattr(cls, method_name, method_param)
+            method =  getattr(cls, method_name)
+            aggregate = copy(orig_cls_method())
+            if isinstance(aggregate, list): #_restler_types()
+                aggregate = set(aggregate)
+                aggregate.update(method())
+                aggregate = list(aggregate)
+            elif isinstance(aggregate, dict): #_restler_property_names
+                aggregate.update(method())
+            return aggregate
+        setattr(cls, method_name, wrap)
+    else:
+        setattr(cls, method_name, method)
+
+"""
+def wrap_restler_types(cls, method):
+    if hasattr(cls, "_restler_types"):
+        orig_cls_method = cls._restler_types
+        @classmethod
+        def wrap(cls_):
+            cls._restler_types = method
+            aggregate_types = {}
+            aggregate_types.update(orig_cls_method())
+            aggregate_types.update(cls._restler_types())
+            return aggregate_types
+        cls._restler_types = wrap
+    else:
+        cls._restler_types = method
+
+def wrap_restler_property_names(cls, method):
+    if hasattr(cls, "_restler_property_names"):
+        orig_cls_method = cls._restler_property_names
+        @classmethod
+        def wrap(cls_):
+            cls._restler_property_names = method
+            aggregate_properties = set()
+            print orig_cls_method(), type(orig_cls_method()), type(orig_cls_method()[0])
+            aggregate_properties.update(set(orig_cls_method()))
+            aggregate_properties.update(set(cls._restler_property_names()))
+            return list(aggregate_properties)
+        cls._restler_property_names = wrap
+    else:
+        cls._restler_property_names = method
+"""
 
 
 def ae_db_serializer(cls):
@@ -8,7 +60,7 @@ def ae_db_serializer(cls):
     from google.appengine.ext import blobstore, db
 
     @classmethod
-    def restler_types(cls):
+    def _restler_types(cls):
         """
         A map of types types to callables that serialize those types.
         """
@@ -24,25 +76,24 @@ def ae_db_serializer(cls):
         }
 
 
-
     @classmethod
-    def restler_serialization_name(cls):
+    def _restler_serialization_name(cls):
         """
         The lowercase model classname
         """
         return cls.kind().lower()
 
     @classmethod
-    def restler_property_names(cls):
+    def _restler_property_names(cls):
         """
         List of model property names if *include_all_fields=True*
         Property must be from **google.appengine.ext.db.Property**
         """
         return list(cls.properties().iterkeys())
 
-    cls._restler_types = restler_types
-    cls._restler_serialization_name = restler_serialization_name
-    cls._restler_property_names = restler_property_names
+    wrap_method(cls, _restler_types)
+    wrap_method(cls, _restler_property_names)
+    cls._restler_serialization_name = _restler_serialization_name
 
     return cls
 
@@ -54,7 +105,7 @@ def ae_ndb_serializer(cls):
     from google.appengine.ext import ndb
 
     @classmethod
-    def restler_types(cls):
+    def _restler_types(cls):
         """
         A map of types types to callables that serialize those types.
         """
@@ -68,22 +119,22 @@ def ae_ndb_serializer(cls):
         }
 
     @classmethod
-    def restler_serialization_name(cls):
+    def _restler_serialization_name(cls):
         """
         The lowercase model classname
         """
         return cls.__name__.lower()
 
     @classmethod
-    def restler_property_names(cls):
+    def _restler_property_names(cls):
         """
         List of model property names if *include_all_fields=True*
         Property must be from **google.appengine.ext.ndb.Property**
         """
         return list(cls._properties.iterkeys())
 
-    cls._restler_types = restler_types
-    cls._restler_serialization_name = restler_serialization_name
-    cls._restler_property_names = restler_property_names
+    wrap_method(cls, _restler_types)
+    wrap_method(cls, _restler_property_names)
+    cls._restler_serialization_name = _restler_serialization_name
 
     return cls
