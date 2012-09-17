@@ -19,7 +19,7 @@ sys.path[0:0] = [
     agar_lib_path,
     # SDK libs.
     os.path.join(gae_path, 'lib', 'antlr3'),
-    os.path.join(gae_path, 'lib', 'django_0_96'),
+    os.path.join(gae_path, 'lib', 'django_1_3'),
     os.path.join(gae_path, 'lib', 'fancy_urllib'),
     os.path.join(gae_path, 'lib', 'ipaddr'),
     os.path.join(gae_path, 'lib', 'jinja2'),

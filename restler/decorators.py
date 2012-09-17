@@ -111,3 +111,41 @@ def ae_ndb_serializer(cls):
     cls._restler_serialization_name = _restler_serialization_name
 
     return cls
+
+def django_serializer(cls):
+    """
+    Restler class decorator for google.appengine.ext.ndb.Model for serialization
+    """
+    from django.db import models
+
+    @classmethod
+    def _restler_types(cls):
+        """
+        A map of types types to callables that serialize those types.
+        """
+        from django.db.models.query import QuerySet
+        return {
+            QuerySet: lambda query: list(query)
+        }
+
+    @classmethod
+    def _restler_serialization_name(cls):
+        """
+        The lowercase model classname
+        """
+        return cls.__name__.lower()
+
+    @classmethod
+    def _restler_property_names(cls):
+        """
+        List of model property names if *include_all_fields=True*
+        Property must be from **google.appengine.ext.ndb.Property**
+        """
+        return list(cls._meta.get_all_field_names())
+
+    wrap_method(cls, _restler_types)
+    wrap_method(cls, _restler_property_names)
+    cls._restler_serialization_name = _restler_serialization_name
+
+    return cls
+
