@@ -30,7 +30,7 @@ def wrap_method(cls, method):
 
 def ae_db_serializer(cls):
     """
-    Restler class decorator for google.appengine.ext.db.Model for serialization
+    Restler serialization class decorator for google.appengine.ext.db.Model
     """
     from google.appengine.ext import blobstore, db
 
@@ -74,7 +74,7 @@ def ae_db_serializer(cls):
 
 def ae_ndb_serializer(cls):
     """
-    Restler class decorator for google.appengine.ext.ndb.Model for serialization
+    Restler serializationclass decorator for google.appengine.ext.ndb.Model
     """
     from google.appengine.ext import ndb
 
@@ -116,7 +116,7 @@ def ae_ndb_serializer(cls):
 
 def django_serializer(cls):
     """
-    Restler class decorator for google.appengine.ext.ndb.Model for serialization
+    Restler serialization class decorator for django.db.models
     """
     @classmethod
     def _restler_types(cls):
