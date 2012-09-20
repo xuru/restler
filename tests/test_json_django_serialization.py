@@ -25,13 +25,45 @@ from restler import decorators
 
 @decorators.django_serializer
 class Model1(models.Model):
-    field1 = models.CharField(max_length=10)
-    field2 = models.CharField(max_length=10)
+
+    # Simple fields
+    # field1 = models.AutoField() # - This will be created automatically
+    field2 = models.BigIntegerField(null=True, default=1)
+    field3 = models.BooleanField(default=False)
+    field4 = models.CharField(max_length=10, null=True, default="CharField")
+    field5 = models.CommaSeparatedIntegerField(max_length=20, default=[1,2,3])
+    field6 = models.DateField(null=True, auto_now=True)
+    field7 = models.DateTimeField(null=True, auto_now=True)
+    field8 = models.DateTimeField(null=True, auto_now=True)
+    field9 = models.DecimalField(max_digits=20, decimal_places=2, null=True, default="10.20")
+    field10 = models.EmailField(null=True, default="test@test.com")
+    field11 = models.FileField(upload_to=".", null=True)
+    field12 = models.FilePathField(null=True)
+    field13 = models.FloatField(null=True, default=10.2)
+    field14 = models.ImageField(upload_to=".")
+    field15 = models.IntegerField(null=True, default=2)
+    field16 = models.IPAddressField(null=True, default="127.0.0.1")
+    field17 = models.NullBooleanField(null=True)
+    field18 = models.PositiveIntegerField(null=True, default=2)
+    field18 = models.PositiveSmallIntegerField(null=True, default=2)
+    field19 = models.SlugField(null=True, default="Some combinatation of 1 23")
+    field20 = models.SmallIntegerField(null=True, default=2)
+    field21 = models.TextField(null=True, default="Some Text")
+    field22 = models.TimeField(null=True, auto_now=True)
+    field23 = models.URLField(null=True, default="http://www.yahoo.com")
+
+    # Relationship fields
+    rel1 = models.ForeignKey("Model1", related_name="set1", null=True)
+    rel2 = models.ManyToManyField("Model1", related_name="set2", null=True)
+    rel3 = models.OneToOneField("Model1", null=True)
+
+
+
     class Meta:
         app_label = 'test'
 
     def __unicode__(self):
-        return "Model1 -> %s, %s, %s" % (self.id, self.field1, self.field2)
+        return "Model1 -> %s, %s, %s" % (self.id, self.field2, self.field4)
 
 def install_model(model):
     from django.core.management import sql, color
@@ -62,145 +94,23 @@ def flip(*args, **kwargs):
 class TestJsonSerialization(unittest.TestCase):
 
     def setUp(self):
-        test_db_name = connection.creation.create_test_db(2, autoclobber=True)
+        connection.creation.create_test_db(2, autoclobber=True)
         install_model(Model1)
-        self.model1 = Model1(field1="1", field2="2")
+        from pprint import pprint
+        self.model1 = Model1(field2=1, field4="2")
         self.model1.save()
 
     def test_simple(self):
         ss = ModelStrategy(Model1, include_all_fields=True)
+        #print to_json(Model1.objects.all(), ss)
         sj = json.loads(to_json(Model1.objects.all(), ss))
-        self.assertEqual(sj[0]['field1'], u'1')
+        self.assertEqual(sj[0]['field2'], 1)
+        self.assertEqual(sj[0]['field4'], u'2')
+        ss = ss.include(aggregate=lambda o: '%s, %s' % (o.field2, o.field4))
+        sj = json.loads(to_json(Model1.objects.all(), ss))
+        self.assertEqual(sj[0]['aggregate'], u'1, 2')
 
 
 """
-class TestJsonSerialization(unittest.TestCase):
-
-    def setUp(self):
-        for e in Model1.all():
-            e.delete()
-        for e in Model2.all():
-            e.delete()
-        ref = Model1()
-        ref.put()
-        m = Model1()
-        m2 = Model2()
-        m2.put()
-        m.string = "string"
-        m.bytestring = "\00\0x"
-        m.boolean = True
-        m.integer = 123
-        m.float_ = 22.0
-        m.datetime = datetime.now()
-        m.date = datetime.now().date()
-        m.time = datetime.now().time()
-        m.list_ = [1, 2, 3]
-        m.stringlist = ["one", "two", "three"]
-        m.reference = m2
-        m.selfreference = ref
-        m.blobreference = None  # Todo
-        m.user = users.get_current_user()
-        m.blob = "binary data"  # Todo
-        m.text = "text"
-        m.category = "category"
-        m.link = "http://www.yahoo.com"
-        m.email = "joe@yahoo.com"
-        m.geopt = "1.0, 2.0"
-        m.im = "http://aim.com/ joe@yahoo.com"
-        m.phonenumber = "612-292-4339"
-        m.postaladdress = "234 Shady Oak Rd., Eden Prairie, MN, 55218"
-        m.rating = 23
-        m.put()
-
-    def tearDown(self):
-        for e in Model1.all():
-            e.delete()
-        for e in Model2.all():
-            e.delete()
-
-    def test_nomodel(self):
-        self.assertEqual(flip({'success': True}), {"success": True})
-
-    def test_simple(self):
-        ss = ModelStrategy(Model1) + [{"the_text": "text"}]
-        sj = json.loads(to_json(Model1.all(), ss))
-        self.assertEqual(sj[1], {u'the_text': u'text'})
-
-    def test_simple_property(self):
-        ss = ModelStrategy(Model1) + [{"the_text": lambda o: o.text}]
-        sj = json.loads(to_json(Model1.all(), ss))
-        self.assertEqual(sj[1], {u'the_text': u'text'})
-
-    def test_exclude_fields(self):
-        ss = ModelStrategy(Model1, True) - ["date", "time", "datetime"]
-        sj = json.loads(to_json(Model1.all(), ss))
-        self.assertEqual(sj[1],
-            {
-                u'category': u'category', u'rating': 23, u'list_': [1, 2, 3],
-                u'string': u'string', u'reference': {u'model2_prop': None},
-                u'selfreference': {u'category': None, u'rating': None,
-                                   u'list_': [], u'string': None, u'reference': None,
-                                   u'selfreference': None, u'text': None, u'stringlist': [],
-                                   u'blobreference': None, u'float_': None, u'im': None,
-                                   u'blob': None, u'geopt': None, u'boolean': None,
-                                   u'link': None, u'postaladdress': None, u'bytestring': None,
-                                   u'integer': None, u'email': None, u'phonenumber': None,
-                                   u'user': None}, u'text': u'text',
-                u'stringlist': [u'one', u'two', u'three'],
-                u'blobreference': None, u'float_': 22.0,
-                u'im': u'http://aim.com/ joe@yahoo.com',
-                u'blob': u'binary data', u'geopt': u'1.0 2.0',
-                u'boolean': True, u'link': u'http://www.yahoo.com',
-                u'postaladdress': u'234 Shady Oak Rd., Eden Prairie, MN, 55218',
-                u'bytestring': u'\x00\x00x', u'integer': 123,
-                u'email': u'joe@yahoo.com', u'phonenumber': u'612-292-4339',
-                u'user': None
-            }
-        )
-
-    def test_valid_serialization(self):
-        ss = ModelStrategy(Model1, include_all_fields=True) - ["date", "time", "datetime"]
-        q = Model1.all()
-        dict_data = {'foo': 'foo', 'models': q}
-        sj = json.loads(to_json(dict_data, ss))
-        self.assertEqual(sj['models'][1],
-            {
-                u'category': u'category', u'rating': 23, u'list_': [1, 2, 3], u'string': u'string',
-                u'reference': {u'model2_prop': None},
-                u'selfreference': {
-                    u'category': None, u'rating': None, u'list_': [], u'string': None,
-                    u'reference': None, u'selfreference': None, u'text': None, u'stringlist': [],
-                    u'blobreference': None, u'float_': None, u'im': None, u'blob': None, u'geopt': None,
-                    u'boolean': None, u'link': None, u'postaladdress': None, u'bytestring': None,
-                    u'integer': None, u'email': None, u'phonenumber': None, u'user': None
-                },
-                u'text': u'text', u'stringlist': [u'one', u'two', u'three'], u'blobreference': None,
-                u'float_': 22.0, u'im': u'http://aim.com/ joe@yahoo.com', u'blob': u'binary data',
-                u'geopt': u'1.0 2.0', u'boolean': True, u'link': u'http://www.yahoo.com',
-                u'postaladdress': u'234 Shady Oak Rd., Eden Prairie, MN, 55218',
-                u'bytestring': u'\x00\x00x', u'integer': 123, u'email': u'joe@yahoo.com',
-                u'phonenumber': u'612-292-4339', u'user': None
-            })
-
-    def test_alias_field(self):
-        self.assertEqual(flip(Model2(), ModelStrategy(Model2) + [{"my_method": "my_method"}]),
-            {"my_method": "I say blah!"})
-
-    def test_alias_field2(self):
-        self.assertEqual(flip(Model2(), ModelStrategy(Model2) + ["my_method"]),
-            {"my_method": "I say blah!"})
-
-    def test_alias_field3(self):
-        self.assertEqual(flip(Model2(), ModelStrategy(Model2)
-                                        + [{"my_method": lambda obj, context: context["foo"]}], context={"foo": "woohoo"}),
-            {"my_method": "woohoo"})
-
-    def test_alias_field4(self):
-        self.assertEqual(flip(Model2(), ModelStrategy(Model2) + [{"yes": lambda o: "yes"}, {"no": lambda o: SKIP}]),
-            {"yes": "yes"})
-
-    def test_cached_property(self):
-        ss = ModelStrategy(Model2).include('my_cached_property')
-        sj = json.loads(to_json(Model2.all(), ss))
-        self.assertEqual(sj[0], {u'my_cached_property': u'my cached property'})
+<Insert Brian's Tests Here/>
 """

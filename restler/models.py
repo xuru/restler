@@ -27,14 +27,15 @@ class TransientModel(object):
         return tuple()
 
     @classmethod
-    def _restler_property_names(cls):
+    def _restler_property_map(cls):
         """
         :return: fields that can be serialized.  Also used with `include_all_fields`
         """
-        return cls.required_fields() + cls.optional_fields()
+        return dict([(name, name.__class__) for name in cls.required_fields() + cls.optional_fields()])
 
-    # Alias for backward compatibility
-    fields = _restler_property_names
+    @classmethod
+    def fields(cls):
+        return cls.required_fields() + cls.optional_fields()
 
     @classmethod
     def _restler_types(cls):
@@ -47,7 +48,7 @@ class TransientModel(object):
         return {}
 
     def __init__(self, **kwargs):
-        for prop in self._restler_property_names():
+        for prop in self._restler_property_map().keys():
             setattr(self, prop, kwargs.get(prop))
             if prop in self.required_fields() and getattr(self, prop) is None:
                 raise AttributeError('The property: %s is required.' % prop)
