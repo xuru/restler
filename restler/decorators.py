@@ -16,7 +16,7 @@ def wrap_method(cls, method):
                 aggregate = set(aggregate)
                 aggregate.update(method())
                 aggregate = list(aggregate)
-            elif isinstance(aggregate, dict):  # _restler_property_names
+            elif isinstance(aggregate, dict):  # _restler_property_map
                 aggregate.update(method())
             elif isinstance(aggregate, str):
                 # Developer shouldn't really do this, but we'll try
@@ -58,15 +58,16 @@ def ae_db_serializer(cls):
         return cls.kind().lower()
 
     @classmethod
-    def _restler_property_names(cls):
+    def _restler_property_map(cls):
         """
-        List of model property names if *include_all_fields=True*
-        Property must be from **google.appengine.ext.db.Property**
+        List of model property names -> property types. The names are used in
+        *include_all_fields=True* Property types must be from
+        **google.appengine.ext.db.Property**
         """
-        return list(cls.properties().iterkeys())
+        return cls.properties()
 
     wrap_method(cls, _restler_types)
-    wrap_method(cls, _restler_property_names)
+    wrap_method(cls, _restler_property_map)
     cls._restler_serialization_name = _restler_serialization_name
 
     return cls
@@ -100,15 +101,15 @@ def ae_ndb_serializer(cls):
         return cls.__name__.lower()
 
     @classmethod
-    def _restler_property_names(cls):
+    def _restler_property_map(cls):
         """
         List of model property names if *include_all_fields=True*
         Property must be from **google.appengine.ext.ndb.Property**
         """
-        return list(cls._properties.iterkeys())
+        return cls._properties
 
     wrap_method(cls, _restler_types)
-    wrap_method(cls, _restler_property_names)
+    wrap_method(cls, _restler_property_map)
     cls._restler_serialization_name = _restler_serialization_name
 
     return cls
@@ -124,8 +125,13 @@ def django_serializer(cls):
         A map of types types to callables that serialize those types.
         """
         from django.db.models.query import QuerySet
+        from django.db.models import CommaSeparatedIntegerField, FileField, FilePathField, ImageField
         return {
-            QuerySet: lambda query: list(query)
+            QuerySet: lambda query: list(query),
+            CommaSeparatedIntegerField: lambda value: eval(value),
+            ImageField: lambda value: value,
+            FileField: lambda value: value,
+            FilePathField: lambda value: value
         }
 
     @classmethod
@@ -136,15 +142,23 @@ def django_serializer(cls):
         return cls.__name__.lower()
 
     @classmethod
-    def _restler_property_names(cls):
+    def _restler_property_map(cls):
         """
         List of model property names if *include_all_fields=True*
-        Property must be from **google.appengine.ext.ndb.Property**
+        Property must be from **django.models.fields**
         """
-        return list(cls._meta.get_all_field_names())
+        from django.db.models.fields.related import ForeignKey, ManyToManyField, OneToOneField, RelatedObject
+        # Relation fields (and their related objects) need to be handled specifically as there is no single way to
+        # handle them -- they should be handled explicity through callables.
+        excluded_types = {ForeignKey, ManyToManyField, OneToOneField, RelatedObject}
+        name_map = cls._meta._name_map
+        all_field_names = cls._meta.get_all_field_names()
+        property_map = dict([(name, name_map[name][0].__class__)
+                         for name in all_field_names if name_map[name][0].__class__ not in excluded_types])
+        return property_map
 
     wrap_method(cls, _restler_types)
-    wrap_method(cls, _restler_property_names)
+    wrap_method(cls, _restler_property_map)
     cls._restler_serialization_name = _restler_serialization_name
 
     return cls

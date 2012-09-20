@@ -125,7 +125,7 @@ class ModelStrategy(object):
         """
         self.model = model
         if include_all_fields:
-            self.fields = model._restler_property_names()
+            self.fields = model._restler_property_map().keys()
         else:
             self.fields = []
         self.name = output_name
@@ -162,7 +162,7 @@ class ModelStrategy(object):
                         else:
                             raise ValueError("Cannot add field.  '%s' already exists" % name)
                 elif name not in names:
-                    fields = self.model._restler_property_names()
+                    fields = self.model._restler_property_map().keys()
                     if (name in fields
                             or isinstance(getattr(self.model, name, None), property)
                             or callable(getattr(self.model, name, None))
@@ -278,7 +278,7 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
         if strategy:
             if obj is not None:
                 if obj.__class__ in encoders:
-                   return encoders[obj.__class__](obj)
+                    return encoders[obj.__class__](obj)
         if isinstance(obj, datetime.datetime):
             d = datetime_safe.new_datetime(obj)
             return d.strftime("%s %s" % (DATE_FORMAT, TIME_FORMAT))
@@ -294,14 +294,14 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
         if hasattr(obj, '_restler_serialization_name') or isinstance(obj, models.TransientModel):
             model = {}
             kind = obj._restler_serialization_name()
-            # User the model's properties
+            # Using the model's properties
             if strategy is None:
-                fields = obj._restler_property_names()
+                fields = obj._restler_property_map().keys()
             else:
                 # Load the customized mappings
                 fields = strategy.get(obj.__class__, None)
                 if fields is None:
-                    fields = obj._restler_property_names()
+                    fields = obj._restler_property_map().keys()
                 # If it's a dict, we're changing the output_name for the model
                 elif isinstance(fields, dict):
                     if len(fields.keys()) != 1:
@@ -334,13 +334,14 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
                     if isinstance(model[field_name], SkipField):
                         del model[field_name]
                 else:
-                    if target:  # Remapped name
-                        if hasattr(obj, target):
-                            model[field_name] = getattr(obj, target)
-                        else:
-                            raise ValueError("'%s' was not found " % target)
-                    else:  # Common case (just the field)
-                        model[field_name] = getattr(obj, field_name)
+                    field_name_type = obj._restler_property_map().get(target or field_name, None)
+                    field_callable = obj._restler_types().get(field_name_type, None)
+                    if target and not hasattr(obj, target):
+                        raise ValueError("'%s' was not found " % target)
+                    if field_callable:
+                        model[field_name] = field_callable(getattr(obj, target or field_name))
+                    else:
+                        model[field_name] = getattr(obj, target or field_name)
         return ret
     if type_ == "json":
         class AEEncoder(json.JSONEncoder):
