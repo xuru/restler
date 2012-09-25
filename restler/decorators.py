@@ -126,9 +126,10 @@ def django_serializer(cls):
         """
         from django.db.models.query import QuerySet
         from django.db.models import CommaSeparatedIntegerField, FileField, FilePathField, ImageField
+        import json
         return {
             QuerySet: lambda query: list(query),
-            CommaSeparatedIntegerField: lambda value: eval(value),
+            CommaSeparatedIntegerField: lambda value: json.loads(value),
             ImageField: lambda value: value,
             FileField: lambda value: value,
             FilePathField: lambda value: value

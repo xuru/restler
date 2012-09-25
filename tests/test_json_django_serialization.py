@@ -46,7 +46,7 @@ class Model1(models.Model):
     field17 = models.NullBooleanField(null=True)
     field18 = models.PositiveIntegerField(null=True, default=2)
     field18 = models.PositiveSmallIntegerField(null=True, default=2)
-    field19 = models.SlugField(null=True, default="Some combinatation of 1 23")
+    field19 = models.SlugField(null=True, default="Some combination of 1 23")
     field20 = models.SmallIntegerField(null=True, default=2)
     field21 = models.TextField(null=True, default="Some Text")
     field22 = models.TimeField(null=True, auto_now=True)
@@ -56,8 +56,6 @@ class Model1(models.Model):
     rel1 = models.ForeignKey("Model1", related_name="set1", null=True)
     rel2 = models.ManyToManyField("Model1", related_name="set2", null=True)
     rel3 = models.OneToOneField("Model1", null=True)
-
-
 
     class Meta:
         app_label = 'test'
