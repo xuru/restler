@@ -184,9 +184,9 @@ def sqlalchemy_serializer(cls):
         return {
             Query: lambda query: list(query),
             Binary: lambda value: base64.b64encode(value),
-            Interval: lambda value: value, # TODO
+            Interval: lambda value: value,  # TODO
             LargeBinary: lambda value: base64.b64encode(value),
-            PickleType: lambda value: value, # TODO
+            PickleType: lambda value: value,  # TODO
         }
 
     @classmethod
@@ -211,4 +211,3 @@ def sqlalchemy_serializer(cls):
     cls._restler_serialization_name = _restler_serialization_name
 
     return cls
-

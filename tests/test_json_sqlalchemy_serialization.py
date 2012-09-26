@@ -2,8 +2,8 @@
 import json
 import unittest
 
-from datetime import datetime, time
-from restler.serializers import ModelStrategy, to_json, SKIP
+from datetime import datetime
+from restler.serializers import ModelStrategy, to_json
 from restler import decorators
 
 from sqlalchemy import create_engine
@@ -74,25 +74,27 @@ FLOAT_NUM = 1.01
 A_STRING = "some string"
 A_BINARY = '\xff\xd8\xff\xe1A\xecExif'
 
+
+def flip(*args, **kwargs):
+    return json.loads(to_json(*args, **kwargs))
+
+
 @decorators.sqlalchemy_serializer
 class Model1(Base):
     __tablename__ = 'test'
 
-    id =  Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     field2 = Column(String(1000), default=A_STRING)
     field3 = Column(Boolean, default=False)
     field4 = Column(Date, default=DATETIME_NOW)
     field5 = Column(DateTime, default=DATETIME_NOW)
     field6 = Column(Time, default=TIME_NOW)
     field7 = Column(Float, default=FLOAT_NUM)
-    field8 = Column(Text, default=A_STRING )
+    field8 = Column(Text, default=A_STRING)
     #field9 = Column(Binary, default=A_BINARY)
 
-def flip(*args, **kwargs):
-    return json.loads(to_json(*args, **kwargs))
 
 class TestJsonSerialization(unittest.TestCase):
-
     def setUp(self):
         engine = create_engine('sqlite:///:memory:', echo=False)
         Base.metadata.create_all(engine)
@@ -100,7 +102,6 @@ class TestJsonSerialization(unittest.TestCase):
         self.session = Session()
         self.model1 = Model1()
         self.session.add(self.model1)
-
 
     def test_simple(self):
         ss = ModelStrategy(Model1, include_all_fields=True)
@@ -115,8 +116,3 @@ class TestJsonSerialization(unittest.TestCase):
 """
 <Insert Brian's Tests Here/>
 """
-
-
-
-
-
