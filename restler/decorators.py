@@ -178,14 +178,14 @@ def sqlalchemy_serializer(cls):
         """
         A map of types types to callables that serialize those types.
         """
-        from sqlalchemy.types import BinaryType, Interval, LargeBinary, PickleType
+        from sqlalchemy.types import Binary, Interval, LargeBinary, PickleType
         from sqlalchemy.orm.query import Query
         import base64
         return {
             Query: lambda query: list(query),
-            BinaryType : lambda value: base64.b64encode(value),
-            Interval : lambda value: value, # TODO
-            LargeBinary : lambda value: base64.b64encode(value),
+            Binary: lambda value: base64.b64encode(value),
+            Interval: lambda value: value, # TODO
+            LargeBinary: lambda value: base64.b64encode(value),
             PickleType: lambda value: value, # TODO
         }
 
@@ -202,7 +202,7 @@ def sqlalchemy_serializer(cls):
         List of model property names -> property types. The names are used in
         *include_all_fields=True* Property must be from **sqlalchemy.types**
         """
-        columns = cls.__table__
+        columns = cls.__table__.columns
         column_map = dict([(name, columns.get(name).type) for name in columns.keys()])
         return column_map
 
