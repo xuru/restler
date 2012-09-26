@@ -1,6 +1,10 @@
 
 
 def wrap_method(cls, method):
+    """ Helper function to help wrap _restler* methods when more
+     than on decorator is used on a model.
+    :param method: method to wrap
+    """
     from copy import copy
     method_name = method.__func__.__name__
     method_param = method
@@ -145,8 +149,8 @@ def django_serializer(cls):
     @classmethod
     def _restler_property_map(cls):
         """
-        List of model property names if *include_all_fields=True*
-        Property must be from **django.models.fields**
+        List of model property names -> property types. The names are used in
+        *include_all_fields=True* Property must be from **django.models.fields**
         """
         from django.db.models.fields.related import ForeignKey, ManyToManyField, OneToOneField, RelatedObject
         # Relation fields (and their related objects) need to be handled specifically as there is no single way to
@@ -174,13 +178,15 @@ def sqlalchemy_serializer(cls):
         """
         A map of types types to callables that serialize those types.
         """
-        import sqlalchemy.types
+        from sqlalchemy.types import BinaryType, Interval, LargeBinary, PickleType
+        from sqlalchemy.orm.query import Query
         import base64
         return {
-            sqlalchemy.types.BinaryType : lambda value: base64.b64encode(value),
-            sqlalchemy.types.Interval : lambda value: value, # TODO
-            sqlalchemy.types.LargeBinary : lambda value: base64.b64encode(value),
-            sqlalchemy.types.PickleType: lambda value: value, # TODO
+            Query: lambda query: list(query),
+            BinaryType : lambda value: base64.b64encode(value),
+            Interval : lambda value: value, # TODO
+            LargeBinary : lambda value: base64.b64encode(value),
+            PickleType: lambda value: value, # TODO
         }
 
     @classmethod
@@ -193,8 +199,8 @@ def sqlalchemy_serializer(cls):
     @classmethod
     def _restler_property_map(cls):
         """
-        List of model property names if *include_all_fields=True*
-        Property must be from **django.models.fields**
+        List of model property names -> property types. The names are used in
+        *include_all_fields=True* Property must be from **sqlalchemy.types**
         """
         columns = cls.__table__
         column_map = dict([(name, columns.get(name).type) for name in columns.keys()])
