@@ -2,9 +2,6 @@
 import json
 import unittest
 
-from datetime import datetime
-from restler.serializers import ModelStrategy, to_json, SKIP
-
 from django.conf import settings
 
 if not settings.configured:
@@ -19,19 +16,20 @@ if not settings.configured:
     settings.configure(**settings_dict)
 
 from django.db import connection
-
 from django.db import models
+
 from restler import decorators
+from restler.serializers import ModelStrategy, to_json
+
 
 @decorators.django_serializer
 class Model1(models.Model):
-
     # Simple fields
     # field1 = models.AutoField() # - This will be created automatically
     field2 = models.BigIntegerField(null=True, default=1)
     field3 = models.BooleanField(default=False)
     field4 = models.CharField(max_length=10, null=True, default="CharField")
-    field5 = models.CommaSeparatedIntegerField(max_length=20, default=[1,2,3])
+    field5 = models.CommaSeparatedIntegerField(max_length=20, default=[1, 2, 3])
     field6 = models.DateField(null=True, auto_now=True)
     field7 = models.DateTimeField(null=True, auto_now=True)
     field8 = models.DateTimeField(null=True, auto_now=True)
@@ -63,9 +61,9 @@ class Model1(models.Model):
     def __unicode__(self):
         return "Model1 -> %s, %s, %s" % (self.id, self.field2, self.field4)
 
+
 def install_model(model):
-    from django.core.management import sql, color
-    from django.db import connection
+    from django.core.management import color
 
     # Standard syncdb expects models to be in reliable locations,
     # so dynamic models need to bypass django.core.management.syncdb.
@@ -80,27 +78,26 @@ def install_model(model):
 
     cursor = connection.cursor()
     statements, pending = connection.creation.sql_create_model(model, style)
-    for sql in statements:
-        cursor.execute(sql)
+    for stmt in statements:
+        cursor.execute(stmt)
 
 #from django.core.management import call_command
 #call_command('syncdb', verbosity=0)
 
+
 def flip(*args, **kwargs):
     return json.loads(to_json(*args, **kwargs))
 
-class TestJsonSerialization(unittest.TestCase):
 
+class TestJsonSerialization(unittest.TestCase):
     def setUp(self):
         connection.creation.create_test_db(2, autoclobber=True)
         install_model(Model1)
-        from pprint import pprint
         self.model1 = Model1(field2=1, field4="2")
         self.model1.save()
 
     def test_simple(self):
         ss = ModelStrategy(Model1, include_all_fields=True)
-        #print to_json(Model1.objects.all(), ss)
         sj = json.loads(to_json(Model1.objects.all(), ss))
         self.assertEqual(sj[0]['field2'], 1)
         self.assertEqual(sj[0]['field4'], u'2')

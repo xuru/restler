@@ -272,7 +272,6 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
         if hasattr(strat, '_restler_types'):
             encoders.update(strat._restler_types())
 
-
     def default_impl(obj):
         # Load objects from the datastore (could be done in parallel)
         if strategy:
