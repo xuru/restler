@@ -163,3 +163,46 @@ def django_serializer(cls):
     cls._restler_serialization_name = _restler_serialization_name
 
     return cls
+
+
+def sqlalchemy_serializer(cls):
+    """
+    Restler serialization class decorator for SqlAlchemy models
+    """
+    @classmethod
+    def _restler_types(cls):
+        """
+        A map of types types to callables that serialize those types.
+        """
+        import sqlalchemy.types
+        import base64
+        return {
+            sqlalchemy.types.BinaryType : lambda value: base64.b64encode(value),
+            sqlalchemy.types.Interval : lambda value: value, # TODO
+            sqlalchemy.types.LargeBinary : lambda value: base64.b64encode(value),
+            sqlalchemy.types.PickleType: lambda value: value, # TODO
+        }
+
+    @classmethod
+    def _restler_serialization_name(cls):
+        """
+        The lowercase model classname
+        """
+        return cls.__name__.lower()
+
+    @classmethod
+    def _restler_property_map(cls):
+        """
+        List of model property names if *include_all_fields=True*
+        Property must be from **django.models.fields**
+        """
+        columns = cls.__table__
+        column_map = dict([(name, columns.get(name).type) for name in columns.keys()])
+        return column_map
+
+    wrap_method(cls, _restler_types)
+    wrap_method(cls, _restler_property_map)
+    cls._restler_serialization_name = _restler_serialization_name
+
+    return cls
+
