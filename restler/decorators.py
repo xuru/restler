@@ -31,183 +31,287 @@ def wrap_method(cls, method):
     else:
         setattr(cls, method_name, method)
 
+def create_type_map(cls, type_map=None):
+    """ Helper function for creating type maps """
 
-def ae_db_serializer(cls):
+    _type_map = None
+    if type_map:
+        if callable(type_map):
+            _type_map = type_map(cls)
+        else:
+            _type_map = type_map.copy()
+    else:
+        _type_map = {}
+
+    return _type_map
+
+def create_serialization_name(cls, serialization_name=None):
+    """ Helper function for creating a serialization name """
+
+    _serialization_name = serialization_name
+    if serialization_name:
+        if callable(serialization_name):
+            _serialization_name = serialization_name(cls)
+    return _serialization_name
+
+def create_property_map(cls, property_map=None):
+    """ Helper function for creating property maps """
+
+    _property_map = None
+    if property_map:
+        if callable(property_map):
+            _property_map = property_map(cls)
+        else:
+            _property_map = property_map.copy()
+    else:
+        _property_map = {}
+    return _property_map
+
+def ae_db_decorator_builder(type_map=None, serialization_name=None, property_map=None):
     """
-    Restler serialization class decorator for google.appengine.ext.db.Model
+    Creates a decorator for google.appengine.ext.db.Model
+    :param type_map: a map of types -> callable(value) or a callable(model)
+     that returns a map.
+    :param serialization_name: a (string) name used for the tag/key for serialization or
+     a callable(model) that returns a name
+    :param property_map: a map of (field) names (string) -> types or a callable(model)
+     that returns a map.
     """
     from google.appengine.ext import blobstore, db
 
-    @classmethod
-    def _restler_types(cls):
+    def wrap(cls):
         """
-        A map of types types to callables that serialize those types.
+        Restler serialization class decorator for google.appengine.ext.db.Model
         """
-        from google.appengine.api import users
-        from webapp2 import cached_property
-        return {
-            db.Query: lambda query: [obj for obj in query],
-            db.GeoPt: lambda obj: "%s %s" % (obj.lat, obj.lon),
-            db.IM: lambda obj: "%s %s" % (obj.protocol, obj.address),
-            users.User: lambda obj: obj.user_id() or obj.email(),
-            cached_property: lambda obj: cached_property,
-            blobstore.BlobInfo: lambda obj: str(obj.key())  # TODO is this correct?
-        }
 
-    @classmethod
-    def _restler_serialization_name(cls):
-        """
-        The lowercase model classname
-        """
-        return cls.kind().lower()
+        @classmethod
+        def _restler_types(cls):
+            """
+            A map of types types to callables that serialize those types.
+            """
 
-    @classmethod
-    def _restler_property_map(cls):
-        """
-        List of model property names -> property types. The names are used in
-        *include_all_fields=True* Property types must be from
-        **google.appengine.ext.db.Property**
-        """
-        return cls.properties()
+            _type_map = create_type_map(type_map)
 
-    wrap_method(cls, _restler_types)
-    wrap_method(cls, _restler_property_map)
-    cls._restler_serialization_name = _restler_serialization_name
+            from google.appengine.api import users
+            from webapp2 import cached_property
+            _type_map.update(
+                {
+                    db.Query: lambda query: [obj for obj in query],
+                    db.GeoPt: lambda obj: "%s %s" % (obj.lat, obj.lon),
+                    db.IM: lambda obj: "%s %s" % (obj.protocol, obj.address),
+                    users.User: lambda obj: obj.user_id() or obj.email(),
+                    cached_property: lambda obj: cached_property,
+                    blobstore.BlobInfo: lambda obj: str(obj.key())  # TODO is this correct?
+            })
+            return _type_map
 
-    return cls
+        @classmethod
+        def _restler_serialization_name(cls):
+            """
+            The lowercase model classname
+            """
+            _serialization_name = create_serialization_name(cls, serialization_name or cls.kind().lower())
+            return _serialization_name
 
+        @classmethod
+        def _restler_property_map(cls):
+            """
+            List of model property names -> property types. The names are used in
+            *include_all_fields=True* Property types must be from
+            **google.appengine.ext.db.Property**
+            """
+            _property_map = create_property_map(cls, property_map)
+            _property_map.update(cls.properties())
+            return _property_map
 
-def ae_ndb_serializer(cls):
+        wrap_method(cls, _restler_types)
+        wrap_method(cls, _restler_property_map)
+        cls._restler_serialization_name = _restler_serialization_name
+
+        return cls
+
+    return wrap
+
+ae_db_serializer = ae_db_decorator_builder()
+
+def ae_ndb_decorator_builder(type_map=None, serialization_name=None, property_map=None):
     """
     Restler serializationclass decorator for google.appengine.ext.ndb.Model
     """
     from google.appengine.ext import ndb
 
-    @classmethod
-    def _restler_types(cls):
-        """
-        A map of types types to callables that serialize those types.
-        """
-        from google.appengine.api import users
-        from webapp2 import cached_property
-        return {
-            ndb.query.Query: lambda query: [obj for obj in query],
-            ndb.GeoPt: lambda obj: "%s %s" % (obj.lat, obj.lon),
-            users.User: lambda obj: obj.user_id() or obj.email(),
-            cached_property: lambda obj: cached_property,
-        }
+    def wrap(cls):
 
-    @classmethod
-    def _restler_serialization_name(cls):
-        """
-        The lowercase model classname
-        """
-        return cls.__name__.lower()
+        @classmethod
+        def _restler_types(cls):
+            """
+            A map of types types to callables that serialize those types.
+            """
+            from google.appengine.api import users
+            from webapp2 import cached_property
+            _type_map = create_type_map(type_map)
+            _type_map.update({
+                ndb.query.Query: lambda query: [obj for obj in query],
+                ndb.GeoPt: lambda obj: "%s %s" % (obj.lat, obj.lon),
+                users.User: lambda obj: obj.user_id() or obj.email(),
+                cached_property: lambda obj: cached_property,
+            })
+            return _type_map
 
-    @classmethod
-    def _restler_property_map(cls):
-        """
-        List of model property names if *include_all_fields=True*
-        Property must be from **google.appengine.ext.ndb.Property**
-        """
-        return cls._properties
+        @classmethod
+        def _restler_serialization_name(cls):
+            """
+            The lowercase model classname
+            """
+            _serialization_name = create_serialization_name(cls, serialization_name or cls.__name__.lower())
+            return _serialization_name
 
-    wrap_method(cls, _restler_types)
-    wrap_method(cls, _restler_property_map)
-    cls._restler_serialization_name = _restler_serialization_name
+        @classmethod
+        def _restler_property_map(cls):
+            """
+            List of model property names if *include_all_fields=True*
+            Property must be from **google.appengine.ext.ndb.Property**
+            """
+            _property_map = create_property_map(cls, property_map)
+            _property_map.update(cls._properties)
+            return _property_map
 
-    return cls
+        wrap_method(cls, _restler_types)
+        wrap_method(cls, _restler_property_map)
+        cls._restler_serialization_name = _restler_serialization_name
 
+        return cls
+    return wrap
 
-def django_serializer(cls):
+ae_ndb_serializer = ae_ndb_decorator_builder()
+
+def django_decorator_builder(type_map=None, serialization_name=None, property_map=None):
     """
-    Restler serialization class decorator for django.db.models
+    Creates a decorator for django.db.Models
+    :param type_map: a map of types -> callable(value) or a callable(model)
+     that returns a map.
+    :param serialization_name: a (string) name used for the tag/key for serialization or
+     a callable(model) that returns a name
+    :param property_map: a map of (field) names (string) -> types or a callable(model)
+     that returns a map.
     """
-    @classmethod
-    def _restler_types(cls):
-        """
-        A map of types types to callables that serialize those types.
-        """
-        from django.db.models.query import QuerySet
-        from django.db.models import CommaSeparatedIntegerField, FileField, FilePathField, ImageField
-        import json
-        return {
-            QuerySet: lambda query: list(query),
-            CommaSeparatedIntegerField: lambda value: json.loads(value),
-            ImageField: lambda value: value,
-            FileField: lambda value: value,
-            FilePathField: lambda value: value
-        }
 
-    @classmethod
-    def _restler_serialization_name(cls):
+    def wrap(cls):
         """
-        The lowercase model classname
+        Restler serialization class decorator for django.db.models
         """
-        return cls.__name__.lower()
+        @classmethod
+        def _restler_types(cls):
+            """
+            A map of types types to callables that serialize those types.
+            """
+            from django.db.models.query import QuerySet
+            from django.db.models import CommaSeparatedIntegerField, FileField, FilePathField, ImageField
+            import json
+            _type_map = create_type_map(type_map)
+            _type_map.update({
+                QuerySet: lambda query: list(query),
+                CommaSeparatedIntegerField: lambda value: json.loads(value),
+                ImageField: lambda value: value,
+                FileField: lambda value: value,
+                FilePathField: lambda value: value
+            })
+            return _type_map
 
-    @classmethod
-    def _restler_property_map(cls):
-        """
-        List of model property names -> property types. The names are used in
-        *include_all_fields=True* Property must be from **django.models.fields**
-        """
-        from django.db.models.fields.related import ForeignKey, ManyToManyField, OneToOneField, RelatedObject
-        # Relation fields (and their related objects) need to be handled specifically as there is no single way to
-        # handle them -- they should be handled explicity through callables.
-        excluded_types = {ForeignKey, ManyToManyField, OneToOneField, RelatedObject}
-        name_map = cls._meta._name_map
-        all_field_names = cls._meta.get_all_field_names()
-        property_map = dict([(name, name_map[name][0].__class__)
-                         for name in all_field_names if name_map[name][0].__class__ not in excluded_types])
-        return property_map
+        @classmethod
+        def _restler_serialization_name(cls):
+            """
+            The lowercase model classname
+            """
+            _serialization_name = create_serialization_name(cls, serialization_name or cls.__name__.lower())
+            return _serialization_name
 
-    wrap_method(cls, _restler_types)
-    wrap_method(cls, _restler_property_map)
-    cls._restler_serialization_name = _restler_serialization_name
+        @classmethod
+        def _restler_property_map(cls):
+            """
+            List of model property names -> property types. The names are used in
+            *include_all_fields=True* Property must be from **django.models.fields**
+            """
+            from django.db.models.fields.related import ForeignKey, ManyToManyField, OneToOneField, RelatedObject
+            # Relation fields (and their related objects) need to be handled specifically as there is no single way to
+            # handle them -- they should be handled explicity through callables.
+            excluded_types = {ForeignKey, ManyToManyField, OneToOneField, RelatedObject}
+            name_map = cls._meta._name_map
+            all_field_names = cls._meta.get_all_field_names()
+            _property_map = create_property_map(cls, property_map)
+            new_property_map = dict([(name, name_map[name][0].__class__)
+                             for name in all_field_names if name_map[name][0].__class__ not in excluded_types])
+            _property_map.update(new_property_map)
+            return _property_map
 
-    return cls
+        wrap_method(cls, _restler_types)
+        wrap_method(cls, _restler_property_map)
+        cls._restler_serialization_name = _restler_serialization_name
 
+        return cls
+    return wrap
 
-def sqlalchemy_serializer(cls):
+django_serializer = django_decorator_builder()
+
+def sqlalchemy_decorator_builder(type_map=None, serialization_name=None, property_map=None):
     """
-    Restler serialization class decorator for SqlAlchemy models
+    Creates a decorator for sqlalchemy models
+    :param type_map: a map of types -> callable(value) or a callable(model)
+     that returns a map.
+    :param serialization_name: a (string) name used for the tag/key for serialization or
+     a callable(model) that returns a name
+    :param property_map: a map of (field) names (string) -> types or a callable(model)
+     that returns a map.
     """
-    @classmethod
-    def _restler_types(cls):
-        """
-        A map of types types to callables that serialize those types.
-        """
-        from sqlalchemy.types import Binary, Interval, LargeBinary, PickleType
-        from sqlalchemy.orm.query import Query
-        import base64
-        return {
-            Query: lambda query: list(query),
-            Binary: lambda value: base64.b64encode(value),
-            Interval: lambda value: value,  # TODO
-            LargeBinary: lambda value: base64.b64encode(value),
-            PickleType: lambda value: value,  # TODO
-        }
 
-    @classmethod
-    def _restler_serialization_name(cls):
+    def wrap(cls):
         """
-        The lowercase model classname
+        Restler serialization class decorator for SqlAlchemy models
         """
-        return cls.__name__.lower()
+        @classmethod
+        def _restler_types(cls):
+            """
+            A map of types types to callables that serialize those types.
+            """
+            from sqlalchemy.types import Binary, Interval, LargeBinary, PickleType
+            from sqlalchemy.orm.query import Query
+            import base64
+            _type_map = create_type_map(type_map)
+            _type_map.update({
+                Query: lambda query: list(query),
+                Binary: lambda value: base64.b64encode(value),
+                Interval: lambda value: value,  # TODO
+                LargeBinary: lambda value: base64.b64encode(value),
+                PickleType: lambda value: value,  # TODO
+            })
+            return _type_map
 
-    @classmethod
-    def _restler_property_map(cls):
-        """
-        List of model property names -> property types. The names are used in
-        *include_all_fields=True* Property must be from **sqlalchemy.types**
-        """
-        columns = cls.__table__.columns
-        column_map = dict([(name, columns.get(name).type) for name in columns.keys()])
-        return column_map
+        @classmethod
+        def _restler_serialization_name(cls):
+            """
+            The lowercase model classname
+            """
+            _serialization_name = create_serialization_name(cls, serialization_name or cls.__name__.lower())
+            return _serialization_name
 
-    wrap_method(cls, _restler_types)
-    wrap_method(cls, _restler_property_map)
-    cls._restler_serialization_name = _restler_serialization_name
+        @classmethod
+        def _restler_property_map(cls):
+            """
+            List of model property names -> property types. The names are used in
+            *include_all_fields=True* Property must be from **sqlalchemy.types**
+            """
+            _property_map = create_property_map(cls, property_map)
+            columns = cls.__table__.columns
+            column_map = dict([(name, columns.get(name).type) for name in columns.keys()])
+            _property_map.update(column_map)
+            return _property_map
 
-    return cls
+        wrap_method(cls, _restler_types)
+        wrap_method(cls, _restler_property_map)
+        cls._restler_serialization_name = _restler_serialization_name
+
+        return cls
+    return wrap
+
+sqlalchemy_serializer = sqlalchemy_decorator_builder()
+
