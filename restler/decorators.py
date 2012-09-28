@@ -1,4 +1,15 @@
 
+from restler import UnsupportedTypeError
+
+def unsupported(type_):
+    """
+    Mark types for that aren't supported
+    :param type_: Model type
+    :return: a handler that raises and UnsupportedTypeError for that type
+    """
+    def handler(obj):
+        raise UnsupportedTypeError(type_)
+    return handler
 
 def wrap_method(cls, method):
     """ Helper function to help wrap _restler* methods when more
@@ -212,9 +223,9 @@ def django_decorator_builder(type_map=None, serialization_name=None, property_ma
             _type_map.update({
                 QuerySet: lambda query: list(query),
                 CommaSeparatedIntegerField: lambda value: json.loads(value),
-                ImageField: lambda value: value,
-                FileField: lambda value: value,
-                FilePathField: lambda value: value
+                ImageField: unsupported(ImageField),
+                FileField: unsupported(FileField),
+                FilePathField: unsupported(FilePathField)
             })
             return _type_map
 
@@ -279,10 +290,10 @@ def sqlalchemy_decorator_builder(type_map=None, serialization_name=None, propert
             _type_map = create_type_map(type_map)
             _type_map.update({
                 Query: lambda query: list(query),
-                Binary: lambda value: base64.b64encode(value),
-                Interval: lambda value: value,  # TODO
-                LargeBinary: lambda value: base64.b64encode(value),
-                PickleType: lambda value: value,  # TODO
+                Binary: unsupported(Binary),
+                Interval: unsupported(Interval),
+                LargeBinary: unsupported(LargeBinary),
+                PickleType: unsupported(PickleType)
             })
             return _type_map
 
