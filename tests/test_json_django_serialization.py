@@ -35,10 +35,10 @@ class Model1(models.Model):
     field8 = models.DateTimeField(null=True, auto_now=True)
     field9 = models.DecimalField(max_digits=20, decimal_places=2, null=True, default="10.20")
     field10 = models.EmailField(null=True, default="test@test.com")
-    field11 = models.FileField(upload_to=".", null=True)
-    field12 = models.FilePathField(null=True)
+    # field11 = models.FileField(upload_to=".", null=True)  # UnsupportedTypeError
+    # field12 = models.FilePathField(null=True)  # UnsupportedTypeError
     field13 = models.FloatField(null=True, default=10.2)
-    field14 = models.ImageField(upload_to=".")
+    # field14 = models.ImageField(upload_to=".")   # UnsupportedTypeError
     field15 = models.IntegerField(null=True, default=2)
     field16 = models.IPAddressField(null=True, default="127.0.0.1")
     field17 = models.NullBooleanField(null=True)
@@ -80,9 +80,6 @@ def install_model(model):
     statements, pending = connection.creation.sql_create_model(model, style)
     for stmt in statements:
         cursor.execute(stmt)
-
-#from django.core.management import call_command
-#call_command('syncdb', verbosity=0)
 
 
 def flip(*args, **kwargs):
