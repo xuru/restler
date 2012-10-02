@@ -5,6 +5,7 @@ import decimal
 import json
 import pprint
 import types
+import warnings
 
 from xml.etree import ElementTree as ET
 
@@ -326,8 +327,14 @@ def encoder_builder(type_, strategy=None, style=None, context={}):
                 if callable(target):  # Defer to the callable
                     # if the function has exactly two arguments, assume we should include the context param
                     if hasattr(target, "func_code") and target.func_code.co_argcount == 2:
+                        warnings.warn("Callable should be called with the following three arguments: "
+                            "instance, field_name, context", DeprecationWarning)
                         model[field_name] = target(obj, context)
+                    elif hasattr(target, "func_code") and target.func_code.co_argcount == 3:
+                        model[field_name] = target(obj, field_name, context)
                     else:  # No context passed
+                        warnings.warn("Callable should be called with the following three arguments: "
+                                      "instance, field_name, context", DeprecationWarning)
                         model[field_name] = target(obj)
                     # if we get back an instance of SKIP, don't include this field in the output
                     if isinstance(model[field_name], SkipField):
