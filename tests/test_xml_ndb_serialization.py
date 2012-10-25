@@ -74,6 +74,5 @@ class TestXmlSerialization(unittest.TestCase):
     def test_json_property(self):
         ss = ModelStrategy(NdbModel1, include_all_fields=True)
         tree = ET.fromstring(to_xml(self.m, ss))
-        found = tree.findall(".//json_")
-        self.assertEqual(len(found), 1)
-        self.assertEqual(found[0].attrib, '{"first_name": "John", "last_name": "Smith"}')
+        found = tree.findall(".//json_/first_name")
+        self.assertEqual(found[0].text, 'John')
