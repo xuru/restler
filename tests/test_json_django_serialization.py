@@ -1,19 +1,6 @@
-
+from env_setup import setup_django; setup_django()
 import json
 import unittest
-
-from django.conf import settings
-
-if not settings.configured:
-    settings_dict = dict(
-        INSTALLED_APPS=("test",),
-        DATABASES={
-            "default": {
-                "ENGINE": "django.db.backends.sqlite3",
-            },
-        },
-    )
-    settings.configure(**settings_dict)
 
 from django.db import connection
 from django.db import models
