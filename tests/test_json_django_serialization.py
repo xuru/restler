@@ -13,29 +13,28 @@ from restler.serializers import ModelStrategy, to_json
 class Model1(models.Model):
     # Simple fields
     # field1 = models.AutoField() # - This will be created automatically
-    field2 = models.BigIntegerField(null=True, default=1)
-    field3 = models.BooleanField(default=False)
-    field4 = models.CharField(max_length=10, null=True, default="CharField")
-    field5 = models.CommaSeparatedIntegerField(max_length=20, default=[1, 2, 3])
-    field6 = models.DateField(null=True, auto_now=True)
-    field7 = models.DateTimeField(null=True, auto_now=True)
-    field8 = models.DateTimeField(null=True, auto_now=True)
-    field9 = models.DecimalField(max_digits=20, decimal_places=2, null=True, default="10.20")
-    field10 = models.EmailField(null=True, default="test@test.com")
+    big_integer = models.BigIntegerField(null=True, default=1)
+    boolean = models.BooleanField(default=False)
+    char = models.CharField(max_length=10, null=True, default="CharField")
+    comma_separated_int = models.CommaSeparatedIntegerField(max_length=20, default=[1, 2, 3])
+    _date = models.DateField(null=True, auto_now=True)
+    _datetime = models.DateTimeField(null=True, auto_now=True)
+    decimal = models.DecimalField(max_digits=20, decimal_places=2, null=True, default="10.20")
+    email = models.EmailField(null=True, default="test@test.com")
     # field11 = models.FileField(upload_to=".", null=True)  # UnsupportedTypeError
     # field12 = models.FilePathField(null=True)  # UnsupportedTypeError
-    field13 = models.FloatField(null=True, default=10.2)
+    _float = models.FloatField(null=True, default=10.2)
     # field14 = models.ImageField(upload_to=".")   # UnsupportedTypeError
-    field15 = models.IntegerField(null=True, default=2)
-    field16 = models.IPAddressField(null=True, default="127.0.0.1")
-    field17 = models.NullBooleanField(null=True)
-    field18 = models.PositiveIntegerField(null=True, default=2)
-    field18 = models.PositiveSmallIntegerField(null=True, default=2)
-    field19 = models.SlugField(null=True, default="Some combination of 1 23")
-    field20 = models.SmallIntegerField(null=True, default=2)
-    field21 = models.TextField(null=True, default="Some Text")
-    field22 = models.TimeField(null=True, auto_now=True)
-    field23 = models.URLField(null=True, default="http://www.yahoo.com")
+    integer = models.IntegerField(null=True, default=2)
+    ip_address = models.IPAddressField(null=True, default="127.0.0.1")
+    null_boolean = models.NullBooleanField(null=True)
+    positive_int = models.PositiveIntegerField(null=True, default=2)
+    positive_small_int = models.PositiveSmallIntegerField(null=True, default=2)
+    slug = models.SlugField(null=True, default="Some combination of 1 23")
+    small_int = models.SmallIntegerField(null=True, default=2)
+    text = models.TextField(null=True, default="Some Text")
+    _time = models.TimeField(null=True, auto_now=True)
+    url = models.URLField(null=True, default="http://www.yahoo.com")
 
     # Relationship fields
     rel1 = models.ForeignKey("Model1", related_name="set1", null=True)
@@ -46,7 +45,7 @@ class Model1(models.Model):
         app_label = 'test'
 
     def __unicode__(self):
-        return "Model1 -> %s, %s, %s" % (self.id, self.field2, self.field4)
+        return "Model1 -> %s, %s, %s" % (self.id, self.big_integer, self.char)
 
 
 def install_model(model):
@@ -77,15 +76,15 @@ class TestJsonSerialization(unittest.TestCase):
     def setUp(self):
         connection.creation.create_test_db(2, autoclobber=True)
         install_model(Model1)
-        self.model1 = Model1(field2=1, field4="2")
+        self.model1 = Model1(big_integer=1, char="2")
         self.model1.save()
 
     def test_simple(self):
         ss = ModelStrategy(Model1, include_all_fields=True)
         sj = json.loads(to_json(Model1.objects.all(), ss))
-        self.assertEqual(sj[0]['field2'], 1)
-        self.assertEqual(sj[0]['field4'], u'2')
-        ss = ss.include(aggregate=lambda o: '%s, %s' % (o.field2, o.field4))
+        self.assertEqual(sj[0]['big_integer'], 1)
+        self.assertEqual(sj[0]['char'], u'2')
+        ss = ss.include(aggregate=lambda o: '%s, %s' % (o.big_integer, o.char))
         sj = json.loads(to_json(Model1.objects.all(), ss))
         self.assertEqual(sj[0]['aggregate'], u'1, 2')
 
