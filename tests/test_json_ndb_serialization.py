@@ -9,6 +9,19 @@ from restler.serializers import ModelStrategy, to_json, SKIP
 from tests.models import NdbModel1, NdbModel2
 
 
+MODEL1 = {
+    u'string': u'string',
+    u'stringlist': [u'one', u'two', u'three'],
+    u'text': u'text',
+    u'float_': 22.0, u'blob': u'binary data',
+    u'geopt': u'1.0 2.0', u'boolean': True,
+    u'integer': 123,
+    u'integerlist': [1, 2, 3],
+    u'user': None,
+    u'json_': {u'first_name': u'John', u'last_name': u'Smith'}
+}
+
+
 def flip(*args, **kwargs):
     return json.loads(to_json(*args, **kwargs))
 
@@ -22,23 +35,28 @@ class TestJsonSerialization(unittest.TestCase):
             e.key.delete()
         ref = NdbModel1()
         ref.put()
-        m = NdbModel1()
         m2 = NdbModel2()
         m2.put()
-        m.string = "string"
-        m.boolean = True
-        m.integer = 123
-        m.float_ = 22.0
-        m.datetime = datetime.now()
-        m.date = datetime.now().date()
-        m.time = datetime.now().time()
-        m.stringlist = ["one", "two", "three"]
-        m.integerlist = [1, 2, 3]
-        m.user = users.get_current_user()
-        m.blob = "binary data"  # Todo
-        m.text = "text"
-        m.geopt = ndb.GeoPt("1.0, 2.0")
-        m.put()
+
+        self.m = NdbModel1()
+        params = {
+            'string': 'string',
+            'boolean': True,
+            'integer': 123,
+            'float_': 22.0,
+            'datetime': datetime.now(),
+            'date': datetime.now().date(),
+            'time': datetime.now().time(),
+            'stringlist': ['one', 'two', 'three'],
+            'integerlist': [1, 2, 3],
+            'user': users.get_current_user(),
+            'blob': 'binary data',  # TODO
+            'text': 'text',
+            'geopt': ndb.GeoPt("1.0, 2.0"),
+            'json_': {'first_name': 'John', 'last_name': 'Smith'}
+        }
+        self.m.populate(**params)
+        self.m.put()
 
     def tearDown(self):
         for e in NdbModel1.query():
@@ -62,36 +80,14 @@ class TestJsonSerialization(unittest.TestCase):
     def test_exclude_fields(self):
         ss = ModelStrategy(NdbModel1, include_all_fields=True) - ["date", "time", "datetime"]
         sj = json.loads(to_json(NdbModel1.query(), ss))
-        self.assertEqual(sj[1],
-            {
-                u'string': u'string',
-                u'stringlist': [u'one', u'two', u'three'],
-                u'text': u'text',
-                u'float_': 22.0, u'blob': u'binary data',
-                u'geopt': u'1.0 2.0', u'boolean': True,
-                u'integer': 123,
-                u'integerlist': [1, 2, 3],
-                u'user': None
-            }
-        )
+        self.assertEqual(sj[1], MODEL1)
 
     def test_valid_serialization(self):
         ss = ModelStrategy(NdbModel1, include_all_fields=True) - ["date", "time", "datetime"]
         q = NdbModel1.query()
         dict_data = {'foo': 'foo', 'models': q}
         sj = json.loads(to_json(dict_data, ss))
-        self.assertEqual(sj['models'][1],
-            {
-                u'string': u'string',
-                u'stringlist': [u'one', u'two', u'three'],
-                u'text': u'text',
-                u'float_': 22.0, u'blob': u'binary data',
-                u'geopt': u'1.0 2.0', u'boolean': True,
-                u'integer': 123,
-                u'integerlist': [1, 2, 3],
-                u'user': None
-            }
-        )
+        self.assertEqual(sj['models'][1], MODEL1)
 
     def test_alias_field(self):
         self.assertEqual(flip(NdbModel2(), ModelStrategy(NdbModel2) + [{"my_method": "my_method"}]),
@@ -114,3 +110,10 @@ class TestJsonSerialization(unittest.TestCase):
         ss = ModelStrategy(NdbModel2).include('my_cached_property')
         sj = json.loads(to_json(NdbModel2.query(), ss))
         self.assertEqual(sj[0], {u'my_cached_property': u'my cached property'})
+
+    def test_json_property(self):
+        ss = ModelStrategy(NdbModel1).include('json_')
+        json_str = to_json(self.m, ss)
+        self.assertEqual(json_str, '{"json_": {"first_name": "John", "last_name": "Smith"}}')
+        sj = json.loads(json_str)
+        self.assertEqual(sj, {u'json_': {u'first_name': u'John', u'last_name': u'Smith'}})

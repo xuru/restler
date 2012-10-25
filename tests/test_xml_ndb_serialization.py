@@ -5,7 +5,7 @@ from datetime import datetime
 from xml.etree import ElementTree as ET
 
 from google.appengine.api import users
-from restler.serializers import ModelStrategy, to_xml
+from restler.serializers import ModelStrategy, to_xml, to_json
 
 from tests.models import NdbModel1, NdbModel2
 
@@ -19,20 +19,28 @@ class TestXmlSerialization(unittest.TestCase):
             e.key.delete()
         ref = NdbModel1()
         ref.put()
-        m = NdbModel1()
         m2 = NdbModel2()
         m2.put()
-        m.string = "string"
-        m.boolean = True
-        m.integer = 123
-        m.float_ = 22.0
-        m.datetime = datetime.now()
-        m.date = datetime.now().date()
-        m.time = datetime.now().time()
-        m.stringlist = ["one", "two", "three"]
-        m.user = users.get_current_user()
-        m.text = "text"
-        m.put()
+
+        self.m = NdbModel1()
+        params = {
+            'string': 'string',
+            'boolean': True,
+            'integer': 123,
+            'float_': 22.0,
+            'datetime': datetime.now(),
+            'date': datetime.now().date(),
+            'time': datetime.now().time(),
+            'stringlist': ['one', 'two', 'three'],
+            # 'integerlist': [1, 2, 3],
+            'user': users.get_current_user(),
+            # 'blob': 'binary data',  # TODO
+            'text': 'text',
+            # 'geopt': ndb.GeoPt("1.0, 2.0"),
+            'json_': {'first_name': 'John', 'last_name': 'Smith'}
+        }
+        self.m.populate(**params)
+        self.m.put()
 
     def tearDown(self):
         for e in NdbModel1.query():
@@ -62,3 +70,10 @@ class TestXmlSerialization(unittest.TestCase):
         ss = ModelStrategy(NdbModel2).include('my_cached_property')
         tree = ET.fromstring(to_xml(NdbModel2.query(), ss))
         self.assertEqual(len(tree.findall(".//my_cached_property")), 1)
+
+    def test_json_property(self):
+        ss = ModelStrategy(NdbModel1, include_all_fields=True)
+        tree = ET.fromstring(to_xml(self.m, ss))
+        found = tree.findall(".//json_")
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0].attrib, '{"first_name": "John", "last_name": "Smith"}')
