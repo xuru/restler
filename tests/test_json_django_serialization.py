@@ -74,7 +74,7 @@ def flip(*args, **kwargs):
 
 class TestJsonSerialization(unittest.TestCase):
     def setUp(self):
-        connection.creation.create_test_db(2, autoclobber=True)
+        connection.creation.create_test_db(0, autoclobber=True)
         install_model(Model1)
         self.model1 = Model1(big_integer=1, char="2")
         self.model1.save()
@@ -88,7 +88,5 @@ class TestJsonSerialization(unittest.TestCase):
         sj = json.loads(to_json(Model1.objects.all(), ss))
         self.assertEqual(sj[0]['aggregate'], u'1, 2')
 
-
-"""
-<Insert Brian's Tests Here/>
-"""
+    def test_file_field_exception(self):
+        pass
