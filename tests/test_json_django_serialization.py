@@ -100,12 +100,12 @@ class TestJsonSerialization(unittest.TestCase):
             strategy = self.strategy.include('_file')
             to_json(Model1.objects.all(), strategy)
 
-    def test_file_path_unsupported(self):
+    def test_file_path_field_unsupported(self):
         with self.assertRaises(UnsupportedTypeError):
             strategy = self.strategy.include('file_path')
             to_json(Model1.objects.all(), strategy)
 
-    def test_image_unsupported(self):
+    def test_image_field_unsupported(self):
         with self.assertRaises(UnsupportedTypeError):
             strategy = self.strategy.include('image')
             to_json(Model1.objects.all(), strategy)
