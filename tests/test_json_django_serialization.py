@@ -1,12 +1,11 @@
 from env_setup import setup_django; setup_django()
 
 import json
-import unittest
 
 from datetime import datetime
+from unittest import TestCase
 
-from django.db import connection
-from django.db import models
+from django.db import models, connection
 
 from restler import decorators, UnsupportedTypeError
 from restler.serializers import ModelStrategy, to_json
@@ -14,8 +13,6 @@ from restler.serializers import ModelStrategy, to_json
 
 @decorators.django_serializer
 class Model1(models.Model):
-    # Simple fields
-    # field1 = models.AutoField() # - This will be created automatically
     big_integer = models.BigIntegerField(null=True, default=1)
     boolean = models.BooleanField(default=False)
     char = models.CharField(max_length=10, null=True, default="CharField")
@@ -77,7 +74,7 @@ def flip(*args, **kwargs):
     return json.loads(to_json(*args, **kwargs))
 
 
-class TestJsonSerialization(unittest.TestCase):
+class TestJsonSerialization(TestCase):
     def setUp(self):
         connection.creation.create_test_db(0, autoclobber=True)
         install_model(Model1)
