@@ -123,15 +123,6 @@ class TestDjangoFieldJsonSerialization(TestCase):
         self.model1.save()
         self.strategy = ModelStrategy(Model1, include_all_fields=False)
 
-    def test_simple(self):
-        ss = ModelStrategy(Model1, include_all_fields=True).exclude('_file', 'file_path', 'image')
-        sj = json.loads(to_json(Model1.objects.all(), ss))
-        self.assertEqual(sj[0]['big_integer'], 1)
-        self.assertEqual(sj[0]['char'], u'2')
-        ss = ss.include(aggregate=lambda o: '%s, %s' % (o.big_integer, o.char))
-        sj = json.loads(to_json(Model1.objects.all(), ss))
-        self.assertEqual(sj[0]['aggregate'], u'1, 2')
-
     def test_auto_field(self):
         field = 'id'
         strategy = self.strategy.include(field)
@@ -251,3 +242,34 @@ class TestDjangoFieldJsonSerialization(TestCase):
         strategy = self.strategy.include(field)
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
         self.assertEqual(sj.get(field), getattr(self.model1, field))
+
+
+class TestLambdaJsonSerialization(TestCase):
+    def setUp(self):
+        connection.creation.create_test_db(0, autoclobber=True)
+        install_model(Model1)
+        self.model1 = Model1(
+            big_integer=1,
+            boolean=True,
+            char="2",
+            comma_separated_int=[2, 4, 6],
+            decimal=9,
+            email='test@domain.com',
+            _float=9.5,
+            integer=4,
+            ip_address='8.8.1.1.',
+            null_boolean=None,
+            positive_int=100,
+            positive_small_int=1,
+            slug='Slug Field',
+            small_int=1,
+            text='More Text',
+            url='www.google.com'
+        )
+        self.model1.save()
+        self.strategy = ModelStrategy(Model1, include_all_fields=True).exclude('_file', 'file_path', 'image')
+
+    def test_lambda(self):
+        strategy = self.strategy.include(aggregate=lambda o: '%s, %s' % (o.big_integer, o.char))
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
+        self.assertEqual(sj.get('aggregate'), u'1, 2')
