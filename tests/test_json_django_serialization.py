@@ -84,6 +84,7 @@ class TestJsonSerialization(unittest.TestCase):
             char="2"
         )
         self.model1.save()
+        self.strategy = ModelStrategy(Model1, include_all_fields=False)
 
     def test_simple(self):
         ss = ModelStrategy(Model1, include_all_fields=True).exclude('_file', 'file_path', 'image')
@@ -96,35 +97,35 @@ class TestJsonSerialization(unittest.TestCase):
 
     def test_file_field_unsupported(self):
         with self.assertRaises(UnsupportedTypeError):
-            ss = ModelStrategy(Model1, include_all_fields=False).include('_file')
-            to_json(Model1.objects.all(), ss)
+            strategy = self.strategy.include('_file')
+            to_json(Model1.objects.all(), strategy)
 
     def test_file_path_unsupported(self):
         with self.assertRaises(UnsupportedTypeError):
-            ss = ModelStrategy(Model1, include_all_fields=False).include('file_path')
-            to_json(Model1.objects.all(), ss)
+            strategy = self.strategy.include('file_path')
+            to_json(Model1.objects.all(), strategy)
 
     def test_image_unsupported(self):
         with self.assertRaises(UnsupportedTypeError):
-            ss = ModelStrategy(Model1, include_all_fields=False).include('image')
-            to_json(Model1.objects.all(), ss)
+            strategy = self.strategy.include('image')
+            to_json(Model1.objects.all(), strategy)
 
     def test_auto_field(self):
-        ss = ModelStrategy(Model1, include_all_fields=False).include('id')
-        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), ss))
+        strategy = self.strategy.include('id')
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
         self.assertEqual(sj.get('id'), self.model1.id)
 
     def test_big_integer_field(self):
-        ss = ModelStrategy(Model1, include_all_fields=False).include('big_integer')
-        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), ss))
+        strategy = self.strategy.include('big_integer')
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
         self.assertEqual(sj.get('big_integer'), self.model1.big_integer)
 
     def test_boolean_field(self):
-        ss = ModelStrategy(Model1, include_all_fields=False).include('boolean')
-        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), ss))
+        strategy = self.strategy.include('boolean')
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
         self.assertEqual(sj.get('boolean'), self.model1.boolean)
 
     def test_char_field(self):
-        ss = ModelStrategy(Model1, include_all_fields=False).include('char')
-        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), ss))
+        strategy = self.strategy.include('char')
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
         self.assertEqual(sj.get('char'), self.model1.char)
