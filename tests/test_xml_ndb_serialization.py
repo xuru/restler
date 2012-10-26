@@ -5,7 +5,7 @@ from datetime import datetime
 from xml.etree import ElementTree as ET
 
 from google.appengine.api import users
-from restler.serializers import ModelStrategy, to_xml, to_json
+from restler.serializers import ModelStrategy, to_xml
 
 from tests.models import NdbModel1, NdbModel2
 
