@@ -5,7 +5,7 @@ import unittest
 from django.db import connection
 from django.db import models
 
-from restler import decorators
+from restler import decorators, UnsupportedTypeError
 from restler.serializers import ModelStrategy, to_json
 
 
@@ -21,10 +21,7 @@ class Model1(models.Model):
     _datetime = models.DateTimeField(null=True, auto_now=True)
     decimal = models.DecimalField(max_digits=20, decimal_places=2, null=True, default="10.20")
     email = models.EmailField(null=True, default="test@test.com")
-    # field11 = models.FileField(upload_to=".", null=True)  # UnsupportedTypeError
-    # field12 = models.FilePathField(null=True)  # UnsupportedTypeError
     _float = models.FloatField(null=True, default=10.2)
-    # field14 = models.ImageField(upload_to=".")   # UnsupportedTypeError
     integer = models.IntegerField(null=True, default=2)
     ip_address = models.IPAddressField(null=True, default="127.0.0.1")
     null_boolean = models.NullBooleanField(null=True)
@@ -35,6 +32,11 @@ class Model1(models.Model):
     text = models.TextField(null=True, default="Some Text")
     _time = models.TimeField(null=True, auto_now=True)
     url = models.URLField(null=True, default="http://www.yahoo.com")
+
+    # unsupported types
+    _file = models.FileField(upload_to=".", null=True)
+    file_path = models.FilePathField(null=True)
+    image = models.ImageField(upload_to=".")
 
     # Relationship fields
     rel1 = models.ForeignKey("Model1", related_name="set1", null=True)
@@ -76,11 +78,15 @@ class TestJsonSerialization(unittest.TestCase):
     def setUp(self):
         connection.creation.create_test_db(0, autoclobber=True)
         install_model(Model1)
-        self.model1 = Model1(big_integer=1, char="2")
+        self.model1 = Model1(
+            big_integer=1,
+            boolean=True,
+            char="2"
+        )
         self.model1.save()
 
     def test_simple(self):
-        ss = ModelStrategy(Model1, include_all_fields=True)
+        ss = ModelStrategy(Model1, include_all_fields=True).exclude('_file', 'file_path', 'image')
         sj = json.loads(to_json(Model1.objects.all(), ss))
         self.assertEqual(sj[0]['big_integer'], 1)
         self.assertEqual(sj[0]['char'], u'2')
@@ -88,5 +94,37 @@ class TestJsonSerialization(unittest.TestCase):
         sj = json.loads(to_json(Model1.objects.all(), ss))
         self.assertEqual(sj[0]['aggregate'], u'1, 2')
 
-    def test_file_field_exception(self):
-        pass
+    def test_file_field_unsupported(self):
+        with self.assertRaises(UnsupportedTypeError):
+            ss = ModelStrategy(Model1, include_all_fields=False).include('_file')
+            to_json(Model1.objects.all(), ss)
+
+    def test_file_path_unsupported(self):
+        with self.assertRaises(UnsupportedTypeError):
+            ss = ModelStrategy(Model1, include_all_fields=False).include('file_path')
+            to_json(Model1.objects.all(), ss)
+
+    def test_image_unsupported(self):
+        with self.assertRaises(UnsupportedTypeError):
+            ss = ModelStrategy(Model1, include_all_fields=False).include('image')
+            to_json(Model1.objects.all(), ss)
+
+    def test_auto_field(self):
+        ss = ModelStrategy(Model1, include_all_fields=False).include('id')
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), ss))
+        self.assertEqual(sj.get('id'), self.model1.id)
+
+    def test_big_integer_field(self):
+        ss = ModelStrategy(Model1, include_all_fields=False).include('big_integer')
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), ss))
+        self.assertEqual(sj.get('big_integer'), self.model1.big_integer)
+
+    def test_boolean_field(self):
+        ss = ModelStrategy(Model1, include_all_fields=False).include('boolean')
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), ss))
+        self.assertEqual(sj.get('boolean'), self.model1.boolean)
+
+    def test_char_field(self):
+        ss = ModelStrategy(Model1, include_all_fields=False).include('char')
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), ss))
+        self.assertEqual(sj.get('char'), self.model1.char)
