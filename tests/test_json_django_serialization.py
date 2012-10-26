@@ -124,40 +124,40 @@ class TestJsonSerialization(TestCase):
         field = 'id'
         strategy = self.strategy.include(field)
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
-        self.assertEqual(sj.get(field), self.model1.__getattribute__(field))
+        self.assertEqual(sj.get(field), getattr(self.model1, field))
 
     def test_big_integer_field(self):
         field = 'big_integer'
         strategy = self.strategy.include(field)
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
-        self.assertEqual(sj.get(field), self.model1.__getattribute__(field))
+        self.assertEqual(sj.get(field), getattr(self.model1, field))
 
     def test_boolean_field(self):
         field = 'boolean'
         strategy = self.strategy.include(field)
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
-        self.assertEqual(sj.get(field), self.model1.__getattribute__(field))
+        self.assertEqual(sj.get(field), getattr(self.model1, field))
 
     def test_char_field(self):
         field = 'char'
         strategy = self.strategy.include(field)
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
-        self.assertEqual(sj.get(field), self.model1.__getattribute__(field))
+        self.assertEqual(sj.get(field), getattr(self.model1, field))
 
     def test_comma_separated_integer_field(self):
         field = 'comma_separated_int'
         strategy = self.strategy.include(field)
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
-        self.assertEqual(sj.get(field), self.model1.__getattribute__(field))
+        self.assertEqual(sj.get(field), getattr(self.model1, field))
 
     def test_date_field(self):
         field = '_date'
         strategy = self.strategy.include(field)
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
-        self.assertEqual(sj.get(field), datetime.strftime(self.model1.__getattribute__(field), '%Y-%m-%d'))
+        self.assertEqual(sj.get(field), datetime.strftime(getattr(self.model1, field), '%Y-%m-%d'))
 
     def test_datetime_field(self):
         field = '_datetime'
         strategy = self.strategy.include(field)
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
-        self.assertEqual(sj.get(field), datetime.strftime(self.model1.__getattribute__(field), '%Y-%m-%d %H:%M:%S'))
+        self.assertEqual(sj.get(field), datetime.strftime(getattr(self.model1, field), '%Y-%m-%d %H:%M:%S'))
