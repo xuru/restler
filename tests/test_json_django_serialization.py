@@ -50,6 +50,25 @@ class Model1(models.Model):
         return "Model1 -> %s, %s, %s" % (self.id, self.big_integer, self.char)
 
 
+@decorators.django_serializer
+class Poll(models.Model):
+    question = models.CharField(max_length=200)
+    pub_date = models.DateTimeField('date published')
+
+    class Meta:
+        app_label = 'test'
+
+
+@decorators.django_serializer
+class Choice(models.Model):
+    poll = models.ForeignKey(Poll)
+    choice = models.CharField(max_length=200)
+    votes = models.IntegerField()
+
+    class Meta:
+        app_label = 'test'
+
+
 def install_model(model):
     from django.core.management import color
 
@@ -273,3 +292,31 @@ class TestLambdaJsonSerialization(TestCase):
         strategy = self.strategy.include(aggregate=lambda o: '%s, %s' % (o.big_integer, o.char))
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
         self.assertEqual(sj.get('aggregate'), u'1, 2')
+
+
+class TestRelationships(TestCase):
+    def setUp(self):
+        connection.creation.create_test_db(0, autoclobber=True)
+        install_model(Poll)
+        install_model(Choice)
+
+        self.choices = ('Not much', 'The sky', 'Just hacking around')
+        poll = Poll(question="What's new?", pub_date=datetime.now())
+        poll.save()
+        poll.choice_set.create(choice=self.choices[0], votes=0)
+        poll.choice_set.create(choice=self.choices[1], votes=0)
+        poll.choice_set.create(choice=self.choices[2], votes=0)
+        poll.save()
+
+        def choices(poll):
+            return [choice for choice in poll.choice_set.all()]
+
+        poll_strategy = ModelStrategy(Poll, include_all_fields=True).include(choices=choices)
+        choice_strategy = ModelStrategy(Choice, include_all_fields=True)
+        self.poll_choice_strategy = poll_strategy + choice_strategy
+
+    def test_poll_with_choices(self):
+        sj = json.loads(to_json(Poll.objects.all(), self.poll_choice_strategy))
+        serialized_choices = [choice.get('choice') for choice in sj[0].get('choices')]
+        for choice in serialized_choices:
+            self.assertIn(choice, self.choices)
