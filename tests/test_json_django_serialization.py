@@ -106,7 +106,12 @@ class TestJsonSerialization(TestCase):
             big_integer=1,
             boolean=True,
             char="2",
-            comma_separated_int=[2, 4, 6]
+            comma_separated_int=[2, 4, 6],
+            decimal=9,
+            email='test@domain.com',
+            _float=9.5,
+            integer=4,
+            ip_address='8.8.1.1.'
         )
         self.model1.save()
         self.strategy = ModelStrategy(Model1, include_all_fields=False)
@@ -161,3 +166,33 @@ class TestJsonSerialization(TestCase):
         strategy = self.strategy.include(field)
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
         self.assertEqual(sj.get(field), datetime.strftime(getattr(self.model1, field), '%Y-%m-%d %H:%M:%S'))
+
+    def test_decimal_field(self):
+        field = 'decimal'
+        strategy = self.strategy.include(field)
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
+        self.assertEqual(sj.get(field), str(getattr(self.model1, field)))
+
+    def test_email_field(self):
+        field = 'email'
+        strategy = self.strategy.include(field)
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
+        self.assertEqual(sj.get(field), getattr(self.model1, field))
+
+    def test_float_field(self):
+        field = '_float'
+        strategy = self.strategy.include(field)
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
+        self.assertEqual(sj.get(field), getattr(self.model1, field))
+
+    def test_integer_field(self):
+        field = 'integer'
+        strategy = self.strategy.include(field)
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
+        self.assertEqual(sj.get(field), getattr(self.model1, field))
+
+    def test_ip_address_field(self):
+        field = 'ip_address'
+        strategy = self.strategy.include(field)
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
+        self.assertEqual(sj.get(field), getattr(self.model1, field))
