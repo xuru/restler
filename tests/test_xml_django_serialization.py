@@ -66,8 +66,9 @@ class TestDjangoFieldJsonSerialization(TestCase):
         field = 'comma_separated_int'
         strategy = self.strategy.include(field)
         tree = ET.fromstring(to_xml(Model1.objects.get(pk=self.model1.id), strategy))
-        found = tree.findall('.//%s' % field)
-        self.assertEqual(found[0].text, getattr(self.model1, field))
+        found = tree.findall('.//%s//item' % field)
+        for item in found:
+            self.assertIn(int(item.text), getattr(self.model1, field))
 
     def test_date_field(self):
         field = '_date'
