@@ -1,6 +1,9 @@
 from env_setup import setup_django; setup_django()
+
 import json
 import unittest
+
+from datetime import datetime
 
 from django.db import connection
 from django.db import models
@@ -81,7 +84,8 @@ class TestJsonSerialization(unittest.TestCase):
         self.model1 = Model1(
             big_integer=1,
             boolean=True,
-            char="2"
+            char="2",
+            comma_separated_int=[2, 4, 6]
         )
         self.model1.save()
         self.strategy = ModelStrategy(Model1, include_all_fields=False)
@@ -111,21 +115,43 @@ class TestJsonSerialization(unittest.TestCase):
             to_json(Model1.objects.all(), strategy)
 
     def test_auto_field(self):
-        strategy = self.strategy.include('id')
+        field = 'id'
+        strategy = self.strategy.include(field)
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
-        self.assertEqual(sj.get('id'), self.model1.id)
+        self.assertEqual(sj.get(field), self.model1.__getattribute__(field))
 
     def test_big_integer_field(self):
-        strategy = self.strategy.include('big_integer')
+        field = 'big_integer'
+        strategy = self.strategy.include(field)
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
-        self.assertEqual(sj.get('big_integer'), self.model1.big_integer)
+        self.assertEqual(sj.get(field), self.model1.__getattribute__(field))
 
     def test_boolean_field(self):
-        strategy = self.strategy.include('boolean')
+        field = 'boolean'
+        strategy = self.strategy.include(field)
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
-        self.assertEqual(sj.get('boolean'), self.model1.boolean)
+        self.assertEqual(sj.get(field), self.model1.__getattribute__(field))
 
     def test_char_field(self):
-        strategy = self.strategy.include('char')
+        field = 'char'
+        strategy = self.strategy.include(field)
         sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
-        self.assertEqual(sj.get('char'), self.model1.char)
+        self.assertEqual(sj.get(field), self.model1.__getattribute__(field))
+
+    def test_comma_separated_integer_field(self):
+        field = 'comma_separated_int'
+        strategy = self.strategy.include(field)
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
+        self.assertEqual(sj.get(field), self.model1.__getattribute__(field))
+
+    def test_date_field(self):
+        field = '_date'
+        strategy = self.strategy.include(field)
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
+        self.assertEqual(sj.get(field), datetime.strftime(self.model1.__getattribute__(field), '%Y-%m-%d'))
+
+    def test_datetime_field(self):
+        field = '_datetime'
+        strategy = self.strategy.include(field)
+        sj = json.loads(to_json(Model1.objects.get(pk=self.model1.id), strategy))
+        self.assertEqual(sj.get(field), datetime.strftime(self.model1.__getattribute__(field), '%Y-%m-%d %H:%M:%S'))
