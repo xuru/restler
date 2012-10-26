@@ -89,10 +89,6 @@ def install_model(model):
         cursor.execute(stmt)
 
 
-def flip(*args, **kwargs):
-    return json.loads(to_json(*args, **kwargs))
-
-
 class TestDjangoUnsupportedFields(TestCase):
     def setUp(self):
         connection.creation.create_test_db(0, autoclobber=True)

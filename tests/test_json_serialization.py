@@ -6,11 +6,8 @@ from datetime import datetime
 from google.appengine.api import users
 from restler.serializers import ModelStrategy, to_json, SKIP
 
+from tests.helpers import flip
 from tests.models import Model1, Model2
-
-
-def flip(*args, **kwargs):
-    return json.loads(to_json(*args, **kwargs))
 
 
 class TestJsonSerialization(unittest.TestCase):

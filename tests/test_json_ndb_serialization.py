@@ -6,6 +6,7 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 from restler.serializers import ModelStrategy, to_json, SKIP
 
+from tests.helpers import flip
 from tests.models import NdbModel1, NdbModel2
 
 
@@ -20,10 +21,6 @@ MODEL1 = {
     u'user': None,
     u'json_': {u'first_name': u'John', u'last_name': u'Smith'}
 }
-
-
-def flip(*args, **kwargs):
-    return json.loads(to_json(*args, **kwargs))
 
 
 class TestJsonSerialization(unittest.TestCase):

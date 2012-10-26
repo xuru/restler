@@ -75,10 +75,6 @@ A_STRING = "some string"
 A_BINARY = '\xff\xd8\xff\xe1A\xecExif'
 
 
-def flip(*args, **kwargs):
-    return json.loads(to_json(*args, **kwargs))
-
-
 @decorators.sqlalchemy_serializer
 class Model1(Base):
     __tablename__ = 'test'
