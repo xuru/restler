@@ -186,18 +186,17 @@ Here's an example of how you might version an API
 
 """
 
+
 class UnsupportedTypeError(Exception):
     """ A known type that should be explicitly handled because there are multiple valid ways of handling this type.
     There are two ways of handling types that raise this error.  First, explicitly handle the field with a callable.
     Or, create a new decorator with the decorator builder with a standard way to handle this type.
     """
 
-
     def __init__(self, type_, msg=None):
         self.value = type_
-        self.msg = ( "'%s' type needs to be handled explicitly.  There is no _standard_ way of handling this type. "
+        self.msg = ("'%s' type needs to be handled explicitly.  There is no _standard_ way of handling this type. "
                      "Consider using a callable that explicitly handles the field that uses this type.") % self.value.__name__
 
     def __str__(self):
         return self.msg
-
