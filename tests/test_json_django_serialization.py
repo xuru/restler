@@ -74,6 +74,30 @@ def flip(*args, **kwargs):
     return json.loads(to_json(*args, **kwargs))
 
 
+class TestDjangoUnsupportedFields(TestCase):
+    def setUp(self):
+        connection.creation.create_test_db(0, autoclobber=True)
+        install_model(Model1)
+        self.model1 = Model1()
+        self.model1.save()
+        self.strategy = ModelStrategy(Model1, include_all_fields=False)
+
+    def test_file_field_unsupported(self):
+        with self.assertRaises(UnsupportedTypeError):
+            strategy = self.strategy.include('_file')
+            to_json(Model1.objects.all(), strategy)
+
+    def test_file_path_field_unsupported(self):
+        with self.assertRaises(UnsupportedTypeError):
+            strategy = self.strategy.include('file_path')
+            to_json(Model1.objects.all(), strategy)
+
+    def test_image_field_unsupported(self):
+        with self.assertRaises(UnsupportedTypeError):
+            strategy = self.strategy.include('image')
+            to_json(Model1.objects.all(), strategy)
+
+
 class TestJsonSerialization(TestCase):
     def setUp(self):
         connection.creation.create_test_db(0, autoclobber=True)
@@ -95,21 +119,6 @@ class TestJsonSerialization(TestCase):
         ss = ss.include(aggregate=lambda o: '%s, %s' % (o.big_integer, o.char))
         sj = json.loads(to_json(Model1.objects.all(), ss))
         self.assertEqual(sj[0]['aggregate'], u'1, 2')
-
-    def test_file_field_unsupported(self):
-        with self.assertRaises(UnsupportedTypeError):
-            strategy = self.strategy.include('_file')
-            to_json(Model1.objects.all(), strategy)
-
-    def test_file_path_field_unsupported(self):
-        with self.assertRaises(UnsupportedTypeError):
-            strategy = self.strategy.include('file_path')
-            to_json(Model1.objects.all(), strategy)
-
-    def test_image_field_unsupported(self):
-        with self.assertRaises(UnsupportedTypeError):
-            strategy = self.strategy.include('image')
-            to_json(Model1.objects.all(), strategy)
 
     def test_auto_field(self):
         field = 'id'
