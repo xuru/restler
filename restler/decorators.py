@@ -264,6 +264,7 @@ def django_decorator_builder(type_map=None, serialization_name=None, property_ma
 
 django_serializer = django_decorator_builder()
 
+
 def sqlalchemy_decorator_builder(type_map=None, serialization_name=None, property_map=None):
     """
     Creates a decorator for sqlalchemy models
@@ -286,7 +287,6 @@ def sqlalchemy_decorator_builder(type_map=None, serialization_name=None, propert
             """
             from sqlalchemy.types import Binary, Interval, LargeBinary, PickleType
             from sqlalchemy.orm.query import Query
-            import base64
             _type_map = create_type_map(type_map)
             _type_map.update({
                 Query: lambda query: list(query),
@@ -325,4 +325,3 @@ def sqlalchemy_decorator_builder(type_map=None, serialization_name=None, propert
     return wrap
 
 sqlalchemy_serializer = sqlalchemy_decorator_builder()
-
