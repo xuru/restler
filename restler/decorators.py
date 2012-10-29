@@ -311,21 +311,9 @@ def sqlalchemy_decorator_builder(type_map=None, serialization_name=None, propert
             List of model property names -> property types. The names are used in
             *include_all_fields=True* Property must be from **sqlalchemy.types**
             """
-            def fix_type(type_, item, map_):
-                if isinstance(item[1], type_): 
-                    map_[item[0]] = type_
-
             _property_map = create_property_map(cls, property_map)
             columns = cls.__table__.columns
-            column_map = dict([(name, columns.get(name).type) for name in columns.keys()])
-            from sqlalchemy.types import Binary, Interval, LargeBinary, PickleType
-            # In sqlalchemy, the 'type' attribute is an instance of the above type.  Restler wants
-            # an 'is' comparison so we fixup the typemap so we can do the kind of comparison
-            for item in column_map.items():
-                fix_type(Binary, item, column_map)
-                fix_type(Interval, item, column_map)
-                fix_type(LargeBinary, item, column_map)
-                fix_type(PickleType, item, column_map)
+            column_map = dict([(name, columns.get(name).type.__class__) for name in columns.keys()])
             _property_map.update(column_map)
             return _property_map
 
