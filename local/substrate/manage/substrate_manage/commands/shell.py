@@ -2,7 +2,7 @@
 
 import getopt
 import logging
-import sys
+import sys, os
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,6 +24,7 @@ except dev_appserver.InvalidAppConfigError, e:
 
 appserver_args = dev_appserver_main.DEFAULT_ARGS.copy()
 
+sys.path.insert(0, os.path.abspath(os.path.curdir))
 
 def usage():
     print """%s
