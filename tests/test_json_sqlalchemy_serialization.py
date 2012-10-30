@@ -11,7 +11,7 @@ from restler.serializers import ModelStrategy, to_json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from sqla_models import Base, Model1
+from sqla_models import Base, Model1, Choice, Poll
 
 
 class TestUnsupportedTypes(TestCase):
@@ -128,3 +128,33 @@ class TestTypes(TestCase):
         strategy = self.strategy.include(field)
         sj = json.loads(to_json(self.session.query(Model1).all(), strategy))
         self.assertEqual(sj[0].get(field), time.strftime(getattr(self.model1, field), '%H:%M:%S'))
+
+
+class TestRelationships(TestCase):
+    def setUp(self):
+        engine = create_engine('sqlite:///:memory:', echo=False)
+        Base.metadata.create_all(engine)
+        Session = sessionmaker(bind=engine)
+        self.session = Session()
+
+        self.choices = ('Not much', 'The sky', 'Just hacking around')
+        poll = Poll(question="What's new?", pub_date=datetime.now())
+        self.session.add(poll)
+
+        poll.choices.append(Choice(choice=self.choices[0], votes=0))
+        poll.choices.append(Choice(choice=self.choices[1], votes=0))
+        poll.choices.append(Choice(choice=self.choices[2], votes=0))
+        self.session.commit()
+
+        def choices(poll):
+            return [choice for choice in poll.choices]
+
+        poll_strategy = ModelStrategy(Poll, include_all_fields=True).include(choices=choices)
+        choice_strategy = ModelStrategy(Choice, include_all_fields=True)
+        self.poll_choice_strategy = poll_strategy + choice_strategy
+
+    def test_poll_with_choices(self):
+        sj = json.loads(to_json(self.session.query(Poll).all(), self.poll_choice_strategy))
+        serialized_choices = [choice.get('choice') for choice in sj[0].get('choices')]
+        for choice in serialized_choices:
+            self.assertIn(choice, self.choices)
