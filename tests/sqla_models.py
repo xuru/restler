@@ -3,6 +3,9 @@ from datetime import datetime
 from restler import decorators
 from sqlalchemy.ext.declarative import declarative_base
 
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
+
 # Less common types
 from sqlalchemy import Enum
 # Currently unsupported types
@@ -85,3 +88,23 @@ class Model1(Base):
     interval = Column(Interval)
     large_binary = Column(LargeBinary, default=A_BINARY)
     pickle_type = Column(PickleType)
+
+
+@decorators.sqlalchemy_serializer
+class Poll(Base):
+    __tablename__ = 'poll'
+
+    id = Column(Integer, primary_key=True)
+    question = Column(String(200))
+    pub_date = Column(DateTime)
+    choices = relationship('Choice', backref='poll')
+
+
+@decorators.sqlalchemy_serializer
+class Choice(Base):
+    __tablename__ = 'choice'
+
+    id = Column(Integer, primary_key=True)
+    choice = Column(String(200))
+    votes = Column(Integer)
+    poll_id = Column(Integer, ForeignKey('poll.id'))
