@@ -72,13 +72,16 @@ class Model1(Base):
     __tablename__ = 'test'
 
     id = Column(Integer, primary_key=True)
-    field2 = Column(String(1000), default=A_STRING)
-    field3 = Column(Boolean, default=False)
-    field4 = Column(Date, default=DATETIME_NOW)
-    field5 = Column(DateTime, default=DATETIME_NOW)
-    field6 = Column(Time, default=TIME_NOW)
-    field7 = Column(Float, default=FLOAT_NUM)
-    field8 = Column(Text, default=A_STRING)
-    #field9 = Column(Binary, default=A_BINARY)
+    boolean = Column(Boolean, default=False)
+    _date = Column(Date, default=DATETIME_NOW.date())
+    _datetime = Column(DateTime, default=DATETIME_NOW)
+    _float = Column(Float, default=FLOAT_NUM)
+    string = Column(String(1000), default=A_STRING)
+    text = Column(Text, default=A_STRING)
+    _time = Column(Time, default=TIME_NOW)
+
+    # unsupported types
+    binary = Column(Binary, default=A_BINARY)
     interval = Column(Interval)
+    large_binary = Column(LargeBinary, default=A_BINARY)
     pickle_type = Column(PickleType)
