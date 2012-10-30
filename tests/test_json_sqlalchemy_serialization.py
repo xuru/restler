@@ -49,6 +49,22 @@ class TestUnsupportedTypes(TestCase):
             to_json(self.session.query(Model1).all(), strategy)
 
 
+class TestLambdaJsonSerialization(TestCase):
+    def setUp(self):
+        engine = create_engine('sqlite:///:memory:', echo=False)
+        Base.metadata.create_all(engine)
+        Session = sessionmaker(bind=engine)
+        self.session = Session()
+        self.model1 = Model1()
+        self.session.add(self.model1)
+        self.strategy = ModelStrategy(Model1, include_all_fields=False)
+
+    def test_lambda(self):
+        strategy = self.strategy.include(aggregate=lambda o: '%s, %s' % (o.id, o.string))
+        sj = json.loads(to_json(self.session.query(Model1).all(), strategy))
+        self.assertEqual(sj[0]['aggregate'], u'%s, %s' % (self.model1.id, self.model1.string))
+
+
 class TestTypes(TestCase):
     def setUp(self):
         engine = create_engine('sqlite:///:memory:', echo=False)
@@ -64,15 +80,6 @@ class TestTypes(TestCase):
         )
         self.session.add(self.model1)
         self.strategy = ModelStrategy(Model1, include_all_fields=False)
-
-    def test_simple(self):
-        strategy = self.strategy.include('id', 'string')
-        sj = json.loads(to_json(self.session.query(Model1).all(), strategy))
-        self.assertEqual(sj[0]['string'], "A string")
-        self.assertEqual(sj[0]['id'], 1)
-        #ss = ss.include(aggregate=lambda o: '%s, %s' % (o.string, o.field4))
-        #sj = json.loads(to_json(Model1.objects.all(), ss))
-        #self.assertEqual(sj[0]['aggregate'], u'1, 2')
 
     def test_integer_field(self):
         field = 'id'
