@@ -163,6 +163,8 @@ def ae_ndb_decorator_builder(type_map=None, serialization_name=None, property_ma
             _type_map = create_type_map(type_map)
             _type_map.update({
                 ndb.query.Query: lambda query: [obj for obj in query],
+                ndb.ComputedProperty: unsupported(ndb.ComputedProperty),
+                ndb.GenericProperty: unsupported(ndb.GenericProperty),
                 ndb.GeoPt: lambda obj: "%s %s" % (obj.lat, obj.lon),
                 users.User: lambda obj: obj.user_id() or obj.email(),
                 cached_property: lambda obj: cached_property,

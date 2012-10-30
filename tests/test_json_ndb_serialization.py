@@ -4,10 +4,12 @@ import unittest
 from datetime import datetime
 from google.appengine.api import users
 from google.appengine.ext import ndb
+
+from restler import UnsupportedTypeError
 from restler.serializers import ModelStrategy, to_json, SKIP
 
 from tests.helpers import flip
-from tests.models import NdbModel1, NdbModel2
+from tests.models import NdbModel1, NdbModel2, NdbModel3
 
 
 MODEL1 = {
@@ -114,3 +116,23 @@ class TestJsonSerialization(unittest.TestCase):
         self.assertEqual(json_str, '{"json_": {"first_name": "John", "last_name": "Smith"}}')
         sj = json.loads(json_str)
         self.assertEqual(sj, {u'json_': {u'first_name': u'John', u'last_name': u'Smith'}})
+
+
+class TestNdbUnsupportedFields(unittest.TestCase):
+    def setUp(self):
+        for e in NdbModel3.query():
+            e.key.delete()
+
+        model = NdbModel3(generic='generic property', name='Smith')
+        model.put()
+        self.strategy = ModelStrategy(NdbModel3, include_all_fields=False)
+
+    def test_generic_property_unsupported(self):
+        with self.assertRaises(UnsupportedTypeError):
+            strategy = self.strategy.include('generic')
+            to_json(NdbModel3.query, strategy)
+
+    def test_computed_property_unsupported(self):
+        with self.assertRaises(UnsupportedTypeError):
+            strategy = self.strategy.include('name_lower')
+            to_json(NdbModel3.query, strategy)
