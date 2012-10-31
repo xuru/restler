@@ -130,9 +130,9 @@ class TestNdbUnsupportedFields(unittest.TestCase):
     def test_generic_property_unsupported(self):
         with self.assertRaises(UnsupportedTypeError):
             strategy = self.strategy.include('generic')
-            to_json(NdbModel3.query, strategy)
+            to_json(NdbModel3.query(), strategy)
 
     def test_computed_property_unsupported(self):
         with self.assertRaises(UnsupportedTypeError):
             strategy = self.strategy.include('name_lower')
-            to_json(NdbModel3.query, strategy)
+            to_json(NdbModel3.query(), strategy)
