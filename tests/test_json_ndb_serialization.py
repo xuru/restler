@@ -1,4 +1,5 @@
 import json
+import pickle
 import unittest
 
 from datetime import datetime
@@ -123,7 +124,7 @@ class TestNdbUnsupportedFields(unittest.TestCase):
         for e in NdbModel3.query():
             e.key.delete()
 
-        model = NdbModel3(generic='generic property', name='Smith')
+        model = NdbModel3(generic='generic property', name='Smith', pickle_=pickle.dumps([1, 2]))
         model.put()
         self.strategy = ModelStrategy(NdbModel3, include_all_fields=False)
 
@@ -135,4 +136,9 @@ class TestNdbUnsupportedFields(unittest.TestCase):
     def test_computed_property_unsupported(self):
         with self.assertRaises(UnsupportedTypeError):
             strategy = self.strategy.include('name_lower')
+            to_json(NdbModel3.query(), strategy)
+
+    def test_pickle_property_unsupported(self):
+        with self.assertRaises(UnsupportedTypeError):
+            strategy = self.strategy.include('pickle_')
             to_json(NdbModel3.query(), strategy)
