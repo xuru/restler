@@ -78,7 +78,6 @@ class NdbModel1(ndb.Model):
     # blob_key = ndb.BlobKeyProperty()
     # structured = ndb.StructuredProperty()
     # local_structured = ndb.LocalStructuredProperty()
-    # pickle_ = ndb.PickleProperty()
 
 
 @ae_ndb_serializer
@@ -86,3 +85,4 @@ class NdbModel3(ndb.Model):
     generic = ndb.GenericProperty()
     name = ndb.StringProperty()
     name_lower = ndb.ComputedProperty(lambda self: self.name.lower())
+    pickle_ = ndb.PickleProperty()
