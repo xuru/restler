@@ -186,7 +186,7 @@ def ae_ndb_decorator_builder(type_map=None, serialization_name=None, property_ma
             Property must be from **google.appengine.ext.ndb.Property**
             """
             _property_map = create_property_map(cls, property_map)
-            _property_map.update(cls._properties)
+            _property_map.update(dict((name, prop.__class__) for name, prop in cls._properties.items()))
             return _property_map
 
         wrap_method(cls, _restler_types)
