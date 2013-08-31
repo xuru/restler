@@ -6,8 +6,11 @@ from datetime import datetime
 from google.appengine.api import users
 from restler.serializers import ModelStrategy, to_json, SKIP
 
-from tests.helpers import flip
 from tests.models import Model1, Model2
+
+
+def flip(*args, **kwargs):
+    return json.loads(to_json(*args, **kwargs))
 
 
 class TestJsonSerialization(unittest.TestCase):
@@ -19,34 +22,34 @@ class TestJsonSerialization(unittest.TestCase):
             e.delete()
         ref = Model1()
         ref.put()
-        m1 = Model1()
+        m = Model1()
         m2 = Model2()
         m2.put()
-        m1.string = "string"
-        m1.bytestring = "\00\0x"
-        m1.boolean = True
-        m1.integer = 123
-        m1.float_ = 22.0
-        m1.datetime = datetime.now()
-        m1.date = datetime.now().date()
-        m1.time = datetime.now().time()
-        m1.list_ = [1, 2, 3]
-        m1.stringlist = ["one", "two", "three"]
-        m1.reference = m2
-        m1.selfreference = ref
-        m1.blobreference = None  # Todo
-        m1.user = users.get_current_user()
-        m1.blob = "binary data"  # Todo
-        m1.text = "text"
-        m1.category = "category"
-        m1.link = "http://www.yahoo.com"
-        m1.email = "joe@yahoo.com"
-        m1.geopt = "1.0, 2.0"
-        m1.im = "http://aim.com/ joe@yahoo.com"
-        m1.phonenumber = "612-292-4339"
-        m1.postaladdress = "234 Shady Oak Rd., Eden Prairie, MN, 55218"
-        m1.rating = 23
-        m1.put()
+        m.string = "string"
+        m.bytestring = "\00\0x"
+        m.boolean = True
+        m.integer = 123
+        m.float_ = 22.0
+        m.datetime = datetime.now()
+        m.date = datetime.now().date()
+        m.time = datetime.now().time()
+        m.list_ = [1, 2, 3]
+        m.stringlist = ["one", "two", "three"]
+        m.reference = m2
+        m.selfreference = ref
+        m.blobreference = None  # Todo
+        m.user = users.get_current_user()
+        m.blob = "binary data"  # Todo
+        m.text = "text"
+        m.category = "category"
+        m.link = "http://www.yahoo.com"
+        m.email = "joe@yahoo.com"
+        m.geopt = "1.0, 2.0"
+        m.im = "http://aim.com/ joe@yahoo.com"
+        m.phonenumber = "612-292-4339"
+        m.postaladdress = "234 Shady Oak Rd., Eden Prairie, MN, 55218"
+        m.rating = 23
+        m.put()
         self.all_model1 = Model1.all().order("-datetime")
 
     def tearDown(self):
@@ -59,11 +62,6 @@ class TestJsonSerialization(unittest.TestCase):
         self.assertEqual(flip({'success': True}), {"success": True})
 
     def test_simple(self):
-        ss = ModelStrategy(Model1) + [u'text']
-        sj = json.loads(to_json(self.all_model1, ss))
-        self.assertEqual(sj[0], {u'text': u'text'})
-
-    def test_simple_alias(self):
         ss = ModelStrategy(Model1) + [{"the_text": "text"}]
         sj = json.loads(to_json(self.all_model1, ss))
         self.assertEqual(sj[0], {u'the_text': u'text'})
