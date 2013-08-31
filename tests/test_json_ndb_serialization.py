@@ -57,6 +57,7 @@ class TestJsonSerialization(unittest.TestCase):
         }
         self.m.populate(**params)
         self.m.put()
+        self.all_model1 = NdbModel1.query().order(-NdbModel1.datetime)
 
     def tearDown(self):
         for e in NdbModel1.query():
@@ -69,25 +70,24 @@ class TestJsonSerialization(unittest.TestCase):
 
     def test_simple(self):
         ss = ModelStrategy(NdbModel1) + [{"the_text": "text"}]
-        sj = json.loads(to_json(NdbModel1.query(), ss))
-        self.assertEqual(sj[1], {u'the_text': u'text'})
+        sj = json.loads(to_json(self.all_model1, ss))
+        self.assertEqual(sj[0], {u'the_text': u'text'})
 
     def test_simple_property(self):
         ss = ModelStrategy(NdbModel1) + [{"the_text": lambda o: o.text}]
-        sj = json.loads(to_json(NdbModel1.query(), ss))
-        self.assertEqual(sj[1], {u'the_text': u'text'})
+        sj = json.loads(to_json(self.all_model1, ss))
+        self.assertEqual(sj[0], {u'the_text': u'text'})
 
     def test_exclude_fields(self):
         ss = ModelStrategy(NdbModel1, include_all_fields=True) - ["date", "time", "datetime"]
-        sj = json.loads(to_json(NdbModel1.query(), ss))
-        self.assertEqual(sj[1], MODEL1)
+        sj = json.loads(to_json(self.all_model1, ss))
+        self.assertEqual(sj[0], MODEL1)
 
     def test_valid_serialization(self):
         ss = ModelStrategy(NdbModel1, include_all_fields=True) - ["date", "time", "datetime"]
-        q = NdbModel1.query()
-        dict_data = {'foo': 'foo', 'models': q}
+        dict_data = {'foo': 'foo', 'models': self.all_model1}
         sj = json.loads(to_json(dict_data, ss))
-        self.assertEqual(sj['models'][1], MODEL1)
+        self.assertEqual(sj['models'][0], MODEL1)
 
     def test_alias_field(self):
         self.assertEqual(flip(NdbModel2(), ModelStrategy(NdbModel2) + [{"my_method": "my_method"}]),

@@ -65,7 +65,7 @@ class NdbModel1(ndb.Model):
     boolean = ndb.BooleanProperty()
     integer = ndb.IntegerProperty()
     float_ = ndb.FloatProperty()
-    datetime = ndb.DateTimeProperty()
+    datetime = ndb.DateTimeProperty(auto_now=True)
     date = ndb.DateProperty()
     time = ndb.TimeProperty()
     user = ndb.UserProperty()
